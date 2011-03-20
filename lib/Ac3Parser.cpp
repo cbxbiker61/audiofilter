@@ -1,7 +1,7 @@
 #include <cstdio>
 #include <cstring>
 #include <AudioFilter/Crc.h>
-#include <AudioFilter/Parser.h>
+#include <AudioFilter/Parsers.h>
 #include "Ac3BitAlloc.h"
 #include "Ac3Dither.h"
 #include "Ac3Tables.h"
