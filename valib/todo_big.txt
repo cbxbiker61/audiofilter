@@ -1,0 +1,177 @@
+-------------------------------
+.
+-------------------------------
+First order
+===========
+
+* Inherit FileParser class from Source class.
+* Check Sync class timing
+* CPUMeter may not work in some cases??? See message from SBN 02.04.2004
+* clev, slev, lfelev mixing coefs locking
+* ac3 encoder test: what is 'strange sample'?
+* ac3dec: add SPDIF output
+* AudioDecoder SPDIF test: add MPA, DTS, PES/AC3, PES/MPA, PES/DTS
+* New: out-of-bounds test for filters (update PCM passthrough test)
+* New: Test: correct filter timstamp passthrough
+
+Tests
+=====
+* New: MPAParser test
+* New: FileParser test
+
+Think about
+===========
+* think about: cross-platform time measurement (look for liba52 for reference)
+* think about: plugin interface
+  (main problem is how to set external filter's parameters and UI)
+* think about: optimal dynamic range compressor based on gathered statistics
+  (after Loudness histogram filter)
+
+Other
+=====
+* pes_demux: add more statistics during processing
+* mpa_iso: add option to disable dithering (for testing purposes)
+* New: decoder & processor .dll
+* New: decoder & processor .lib
+* New: platform-independent cpu usage interface 
+       (to make utils to work in non-win32 environment)
+* Modify AC3Enc to use sample_t
+* New FFT for AC3 encoder
+* remove performance-measure compile options from release builds
+  and make special performance-measure builds
+* Rename a52dec project and think about to make performance tests
+?* Add filter counterpart for parser classes?
+
+
+-------------------------------
+./valib
+-------------------------------
+First order
+===========
+
+* SampleBuf: make version without channels?
+  (for more optimal buffer usage, see Delay and AGC filters for example)
+* MPEGDemux: check marker bits
+* Speakers: level: is it a part of speakers configuration? 
+           :level may be part of Chunk()
+           :do we need compare levels at Speakers::operator == (and !=)?
+* Filter: add method to check if filter can proceed
+  (even if filter supports given input format for filter chain or other
+  complex filter it is possible that other settings prevents filter from
+  working properly)
+  [Source::get_output() may return error but filter can still proceed
+   see AudioDecoder class as an example]
+  current settings (required for FilterChain filter to validate its state)
+  sink
+
+Other
+=====
+* WriteBS: review class
+* DRC should work on source channels, but we cannot simply place 
+  AGC before Mixer and it is a problem.
+  Overall DRC should look like 
+  out = gain + k * level (logarithmic scale)
+  But now gain is done in Mixer (before DRC):
+  out = k * (level + gain)
+  So DRC level shows something dependent on gain 
+
+
+-------------------------------
+./valib/filters
+-------------------------------
+* ParserFilter: timing!
+
+* FormatConverter: pcm to pcm
+* FormatConverter: review timing
+
+* Delay: use cyclic buffer? (less memmove() calls)
+* Delay: optimize buffer usage (channels have different delays!)
+
+* AudioDecoder: check timestamping (make test)
+* AudioDecoder: customizable parsers?
+
+* AGC: clip short bursts (?)
+* AGC: limiter level
+* AGC: per-channel limiter (see ac3filter support page)
+* AGC: per-channel DRC 
+
+* Mixer: throw out null columns
+* Mixer: zero null output channels instead of matrixing
+* Mixer: do not touch pass-through channels
+* Mixer: multiply by factor if it is one output channel for one input channel
+         (instead of matrixing)
+?* Mixer: do not use Speakers to specify input/output modes;
+   use mask and level instead. (avoid ambiguity about format and sample rate)
+
+* New: Matrix convolution filter
+* New: Winamp DSP filters host (far future)
+* New: VST filters host (far future)
+
+
+-------------------------------
+./valib/fir
+-------------------------------
+* File FIR
+* Pink FIR
+* FIR resampling
+
+
+-------------------------------
+./valib/parsers
+-------------------------------
+* AC3Enc: remove first 256 samples (encoded stream is shifted by 256 samples)
+* AC3Parser: optimize get_coefs
+* AC3Parser: add properties:
+  dither - turn dithering on/off (for debug)
+  drc - turn DRC on/off
+  drc_heavy - turn heavy DRC compression on/off
+  crc - use CRC flag
+* AC3Parser: CRC check for low endian
+* AC3Parser: get rid of warnings in floor_tbl table
+* AC3Parser: add comments to tables, review tables
+* AC3Parser: add block-level decoding support
+* AC3Parser: verify bit allocation conditions:
+  (do we need to make _full_ bit allocation if deltbaie = 1?)
+* AC3Parser: grouped mantissas verification (may be out of range)
+* AC3Parser: constraint p.41 s5.4.3.14 (coupling coordinates)
+* AC3Parser: think about error-recovery strategy
+* AC3Parser: think about performance
+
+* MPAParser: intensity_stereo for Layer I/II? (see mode_extension)
+* MPAParser: add mp3 support
+* MPAParser: add multichannel support
+* MPAParser: add free-format support
+* MPAParser: think about error-recovery strategy
+* MPAParser: think about performance
+
+* FileParser: make it Source descendant?
+* FileParser: add timing (get_time() call?):
+  Update time according to file position at seek() call
+  Update time with each frame decoded? (dejitter can do it)
+  (i.e. File parser should be timing generator)
+
+* New: RAWFile class to work with raw PCM files
+* New: WAVFile class to work with WAV files
+* New: AAC parser (far future)
+* New: OGG parser (far future)
+
+
+-------------------------------
+./valib/sink
+-------------------------------
+* AudioRenderer & flushing. Do we need to stop playback after receiving eos-chunk?
+* New: WaveOut sink
+* New: DirectSound3D audio sink
+
+
+-------------------------------
+./valib/win32
+-------------------------------
+
+
+----------------------------------------
+Total tasks: 79
+Done: 0
+Dubious: 2
+Declined: 0
+Comlete: 0%

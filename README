@@ -1,0 +1,12 @@
+Linux:
+
+  Building:
+    cd gnu
+    make (or make -j??)
+
+  Installing:
+    cd gnu
+    make install
+
+AudioFilter is based on Ac3Filter
+

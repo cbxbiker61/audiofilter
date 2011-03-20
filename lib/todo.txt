@@ -1,0 +1,28 @@
+First order
+===========
+
+* SampleBuf: make version without channels?
+  (for more optimal buffer usage, see Delay and AGC filters for example)
+* MPEGDemux: check marker bits
+* Speakers: level: is it a part of speakers configuration? 
+           :level may be part of Chunk()
+           :do we need compare levels at Speakers::operator == (and !=)?
+* Filter: add method to check if filter can proceed
+  (even if filter supports given input format for filter chain or other
+  complex filter it is possible that other settings prevents filter from
+  working properly)
+  [Source::get_output() may return error but filter can still proceed
+   see AudioDecoder class as an example]
+  current settings (required for FilterChain filter to validate its state)
+  sink
+
+Other
+=====
+* WriteBS: review class
+* DRC should work on source channels, but we cannot simply place 
+  AGC before Mixer and it is a problem.
+  Overall DRC should look like 
+  out = gain + k * level (logarithmic scale)
+  But now gain is done in Mixer (before DRC):
+  out = k * (level + gain)
+  So DRC level shows something dependent on gain 

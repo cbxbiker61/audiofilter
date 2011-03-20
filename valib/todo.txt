@@ -1,0 +1,40 @@
+First order
+===========
+
+* Inherit FileParser class from Source class.
+* Check Sync class timing
+* CPUMeter may not work in some cases??? See message from SBN 02.04.2004
+* clev, slev, lfelev mixing coefs locking
+* ac3 encoder test: what is 'strange sample'?
+* ac3dec: add SPDIF output
+* AudioDecoder SPDIF test: add MPA, DTS, PES/AC3, PES/MPA, PES/DTS
+* New: out-of-bounds test for filters (update PCM passthrough test)
+* New: Test: correct filter timstamp passthrough
+
+Tests
+=====
+* New: MPAParser test
+* New: FileParser test
+
+Think about
+===========
+* think about: cross-platform time measurement (look for liba52 for reference)
+* think about: plugin interface
+  (main problem is how to set external filter's parameters and UI)
+* think about: optimal dynamic range compressor based on gathered statistics
+  (after Loudness histogram filter)
+
+Other
+=====
+* pes_demux: add more statistics during processing
+* mpa_iso: add option to disable dithering (for testing purposes)
+* New: decoder & processor .dll
+* New: decoder & processor .lib
+* New: platform-independent cpu usage interface 
+       (to make utils to work in non-win32 environment)
+* Modify AC3Enc to use sample_t
+* New FFT for AC3 encoder
+* remove performance-measure compile options from release builds
+  and make special performance-measure builds
+* Rename a52dec project and think about to make performance tests
+?* Add filter counterpart for parser classes?

@@ -1,0 +1,10 @@
+void ${name}_linear_${nch}ch(uint8_t *rawdata, samples_t samples, size_t size)
+{
+  samples_t dst = samples;
+  while (size--)
+  {
+    $type *src = ($type *)rawdata;
+*    $convert
+    rawdata += $sample_size;
+  }
+}

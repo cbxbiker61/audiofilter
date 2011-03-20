@@ -1,0 +1,13 @@
+void linear_${name}_${nch}ch(uint8_t *rawdata, samples_t samples, size_t size)
+{
+  samples_t src = samples;
+  $type *dst = ($type *)rawdata;
+
+  int r = set_rounding();
+  while (size--)
+  {
+*    $convert
+    dst += $nch;
+  }
+  restore_rounding(r);
+}

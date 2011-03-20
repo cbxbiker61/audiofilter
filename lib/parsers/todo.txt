@@ -1,0 +1,35 @@
+* AC3Enc: remove first 256 samples (encoded stream is shifted by 256 samples)
+* AC3Parser: optimize get_coefs
+* AC3Parser: add properties:
+  dither - turn dithering on/off (for debug)
+  drc - turn DRC on/off
+  drc_heavy - turn heavy DRC compression on/off
+  crc - use CRC flag
+* AC3Parser: CRC check for low endian
+* AC3Parser: get rid of warnings in floor_tbl table
+* AC3Parser: add comments to tables, review tables
+* AC3Parser: add block-level decoding support
+* AC3Parser: verify bit allocation conditions:
+  (do we need to make _full_ bit allocation if deltbaie = 1?)
+* AC3Parser: grouped mantissas verification (may be out of range)
+* AC3Parser: constraint p.41 s5.4.3.14 (coupling coordinates)
+* AC3Parser: think about error-recovery strategy
+* AC3Parser: think about performance
+
+* MPAParser: intensity_stereo for Layer I/II? (see mode_extension)
+* MPAParser: add mp3 support
+* MPAParser: add multichannel support
+* MPAParser: add free-format support
+* MPAParser: think about error-recovery strategy
+* MPAParser: think about performance
+
+* FileParser: make it Source descendant?
+* FileParser: add timing (get_time() call?):
+  Update time according to file position at seek() call
+  Update time with each frame decoded? (dejitter can do it)
+  (i.e. File parser should be timing generator)
+
+* New: RAWFile class to work with raw PCM files
+* New: WAVFile class to work with WAV files
+* New: AAC parser (far future)
+* New: OGG parser (far future)

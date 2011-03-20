@@ -1,0 +1,26 @@
+Valex Audio Library (VALib)
+
+General purpose audio decoding, processing and output library.
+
+Distributed under GNU General Public License version 2.
+
+Contact Author: 
+mailto:xvalex@mail.ru?Subject=valib
+
+Copyright (c) 2006 by Alexander Vigovsky (xvalex@mail.ru)
+
+
+Thanks to
+=========
+
+liba52 - AC3 decoder library
+http://liba52.sourceforge.net/
+
+libca - DTS decoder linrary
+(former libdts) http://developers.videolan.org/libdca.html
+
+ffmpeg - AC3 encoder library
+http://ffmpeg.mplayerhq.hu/
+
+muxman - DVD authoring
+http://www.mpucoder.com/Muxman/

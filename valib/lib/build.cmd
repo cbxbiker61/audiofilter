@@ -1,0 +1,1 @@
+@call ..\cmd\build_vc.cmd %*

@@ -1,0 +1,458 @@
+-------------------------------------------------------------------------------
+Date:   2006/02/22 21:57
+Host:   VAL
+OS:     Microsoft Windows XP Professional
+CPU:    2 Processor(s) Installed.
+CPU:    [01]: x86 Family 15 Model 2 Stepping 9 GenuineIntel ~2798 Mhz
+CPU:    [02]: x86 Family 15 Model 2 Stepping 9 GenuineIntel ~2798 Mhz
+Mem:    2ÿ047 MB
+* CRC byte stream speed: 304MB/s
+* CRC 16bit LE speed: 297MB/s
+* CRC 32bit LE speed: 297MB/s
+* Sync scan speed: 470MB/s, Syncpoints found: 1683
+* Sync scan speed: 438MB/s, Syncpoints found: 1683
+* Demux speed on noise: 23MB/s, Data: 0, Empty: 0
+* Demux speed on file test.all2.pes: 851MB/s, Data: 240, Empty: 0
+* Spdifer speed on noise: 640MB/s, Data: 0, Empty: 0
+* Spdifer speed on file test.all: 280MB/s, Data: 4375, Empty: 85
+* Spdifer speed on file test.all.spdif: 368MB/s, Data: 4375, Empty: 250
+* Total time: 0:29
+
+-------------------------------------------------------------------------------
+Date:   2006/02/22 22:18
+Host:   SRV-VALEX
+OS:     Microsoft(R) Windows(R) Server 2003, Enterprise Edition
+CPU:    1 Processor(s) Installed.
+CPU:    [01]: x86 Family 6 Model 7 Stepping 3 GenuineIntel ~551 Mhz
+Mem:    512 MB
+* CRC byte stream speed: 60MB/s
+* CRC 16bit LE speed: 55MB/s
+* CRC 32bit LE speed: 61MB/s
+* Sync scan speed: 62MB/s, Syncpoints found: 1683
+* Sync scan speed: 62MB/s, Syncpoints found: 1683
+* Demux speed on noise: 5MB/s, Data: 0, Empty: 0
+* Demux speed on file test.all2.pes: 120MB/s, Data: 240, Empty: 0
+* Spdifer speed on noise: 47MB/s, Data: 0, Empty: 0
+* Spdifer speed on file test.all: 60MB/s, Data: 4375, Empty: 85
+* Spdifer speed on file test.all.spdif: 54MB/s, Data: 4375, Empty: 250
+* Total time: 2:00
+
+
+
+===============================================================================
+                                CRC UPDATED
+===============================================================================
+
+
+
+-------------------------------------------------------------------------------
+Date:   2006/02/24 11:09
+Host:   VAL
+OS:     Microsoft Windows XP Professional
+CPU:    2 Processor(s) Installed.
+CPU:    [01]: x86 Family 15 Model 2 Stepping 9 GenuineIntel ~2798 Mhz
+CPU:    [02]: x86 Family 15 Model 2 Stepping 9 GenuineIntel ~2798 Mhz
+Mem:    2ÿ047 MB
+* CRC speed (table method): 246MB/s
+* CRC byte stream speed: 300MB/s
+* CRC 14bit BE speed: 275MB/s
+* CRC 14bit LE speed: 275MB/s
+* CRC 16bit BE speed: 300MB/s
+* CRC 16bit LE speed: 300MB/s
+* CRC 32bit BE speed: 295MB/s
+* CRC 32bit LE speed: 315MB/s
+* No CRC: 1088MB/s CRC: 1103MB/s (1.0 times speed diff)
+* No CRC: 482MB/s CRC: 486MB/s (1.0 times speed diff)
+* No CRC: 757MB/s CRC: 215MB/s (3.5 times speed diff)
+* No CRC: 465MB/s CRC: 323MB/s (1.4 times speed diff)
+* No CRC: 468MB/s CRC: 472MB/s (1.0 times speed diff)
+* No CRC: 433MB/s CRC: 435MB/s (1.0 times speed diff)
+* Sync scan speed: 472MB/s, Syncpoints found: 1683
+* Sync scan speed: 470MB/s, Syncpoints found: 1683
+* Demux speed on noise: 24MB/s, Data: 0, Empty: 0
+* Demux speed on file test.all2.pes: 1072MB/s, Data: 240, Empty: 0
+* Spdifer speed on noise: 350MB/s, Data: 0, Empty: 0
+* Spdifer speed on file test.all: 320MB/s, Data: 4375, Empty: 85
+* Spdifer speed on file test.all.spdif: 370MB/s, Data: 4375, Empty: 250
+* Total time: 0:52
+
+-------------------------------------------------------------------------------
+Date:   2006/02/24 11:14
+Host:   SRV-VALEX
+OS:     Microsoft(R) Windows(R) Server 2003, Enterprise Edition
+CPU:    1 Processor(s) Installed.
+CPU:    [01]: x86 Family 6 Model 7 Stepping 3 GenuineIntel ~551 Mhz
+Mem:    512 MB
+* CRC speed (table method): 33MB/s
+* CRC byte stream speed: 60MB/s
+* CRC 14bit BE speed: 55MB/s
+* CRC 14bit LE speed: 59MB/s
+* CRC 16bit BE speed: 59MB/s
+* CRC 16bit LE speed: 58MB/s
+* CRC 32bit BE speed: 60MB/s
+* CRC 32bit LE speed: 59MB/s
+* No CRC: 140MB/s CRC: 139MB/s (1.0 times speed diff)
+* No CRC: 71MB/s CRC: 72MB/s (1.0 times speed diff)
+* No CRC: 123MB/s CRC: 50MB/s (2.5 times speed diff)
+* No CRC: 70MB/s CRC: 55MB/s (1.3 times speed diff)
+* No CRC: 82MB/s CRC: 81MB/s (1.0 times speed diff)
+* No CRC: 70MB/s CRC: 70MB/s (1.0 times speed diff)
+* Sync scan speed: 62MB/s, Syncpoints found: 1683
+* Sync scan speed: 61MB/s, Syncpoints found: 1683
+* Demux speed on noise: 6MB/s, Data: 0, Empty: 0
+* Demux speed on file test.all2.pes: 114MB/s, Data: 240, Empty: 0
+* Spdifer speed on noise: 46MB/s, Data: 0, Empty: 0
+* Spdifer speed on file test.all: 59MB/s, Data: 4375, Empty: 85
+* Spdifer speed on file test.all.spdif: 66MB/s, Data: 4375, Empty: 250
+* Total time: 1:45
+
+-------------------------------------------------------------------------------
+Date:   2006/02/26 05:30
+Host:   VAL
+OS:     Microsoft Windows XP Professional
+CPU:    2 Processor(s) Installed.
+CPU:    [01]: x86 Family 15 Model 2 Stepping 9 GenuineIntel ~2798 Mhz
+CPU:    [02]: x86 Family 15 Model 2 Stepping 9 GenuineIntel ~2798 Mhz
+Mem:    2ÿ047 MB
+
+* CRC speed (table method): 68MB/s
+* CRC byte stream speed: 300MB/s
+* CRC 14bit BE speed: 252MB/s
+* CRC 14bit LE speed: 280MB/s
+* CRC 16bit BE speed: 300MB/s
+* CRC 16bit LE speed: 300MB/s
+* CRC 32bit BE speed: 300MB/s
+* CRC 32bit LE speed: 300MB/s
+* No CRC: 1061MB/s CRC: 1059MB/s (1.0 times speed diff)
+* No CRC: 472MB/s CRC: 468MB/s (1.0 times speed diff)
+* No CRC: 738MB/s CRC: 202MB/s (3.6 times speed diff)
+* No CRC: 456MB/s CRC: 318MB/s (1.4 times speed diff)
+* No CRC: 465MB/s CRC: 479MB/s (1.0 times speed diff)
+* No CRC: 419MB/s CRC: 433MB/s (1.0 times speed diff)
+* Sync scan speed: 450MB/s, Syncpoints found: 1683
+* Sync scan speed: 460MB/s, Syncpoints found: 1683
+* Demux speed on noise: 460MB/s, Data: 0, Empty: 0
+* Demux speed on file test.all2.pes: 1027MB/s, Data: 240, Empty: 0
+* Spdifer speed on noise: 350MB/s, Data: 0, Empty: 0
+* Spdifer speed on file test.all: 309MB/s, Data: 4375, Empty: 85
+* Spdifer speed on file test.all.spdif: 387MB/s, Data: 4375, Empty: 250
+* Total time: 0:56
+
+
+
+===============================================================================
+                                   NEW TEST
+===============================================================================
+
+
+
+-------------------------------------------------------------------------------
+Date:   2006/06/02 06:06
+Host:   VAL
+OS:     Microsoft Windows XP Professional
+CPU:    2 Processor(s) Installed.
+CPU:    [01]: x86 Family 15 Model 2 Stepping 9 GenuineIntel ~2798 Mhz
+CPU:    [02]: x86 Family 15 Model 2 Stepping 9 GenuineIntel ~2798 Mhz
+Mem:    2ÿ047 MB
+
+Compiler: MSVC 1200
+Debug/Release: Release
+Build date: Sat Jul  1 02:32:24 2006
+Number of channels: 6
+Sample format: double
+Sample size: 8
+
+* CRC speed (table method): 70MB/s
+* CRC byte stream speed: 290MB/s
+* CRC 14bit BE speed: 260MB/s
+* CRC 14bit LE speed: 265MB/s
+* CRC 16bit BE speed: 295MB/s
+* CRC 16bit LE speed: 295MB/s
+* CRC 32bit BE speed: 290MB/s
+* CRC 32bit LE speed: 305MB/s
+* No CRC: 878MB/s CRC: 886MB/s (1.0 times speed diff)
+* No CRC: 435MB/s CRC: 435MB/s (1.0 times speed diff)
+* No CRC: 639MB/s CRC: 205MB/s (3.1 times speed diff)
+* No CRC: 415MB/s CRC: 297MB/s (1.4 times speed diff)
+* No CRC: 418MB/s CRC: 418MB/s (1.0 times speed diff)
+* No CRC: 394MB/s CRC: 401MB/s (1.0 times speed diff)
+* Sync scan speed: 462MB/s, Syncpoints found: 1683
+* Sync scan speed: 450MB/s, Syncpoints found: 1683
+* Demux speed on noise: 460MB/s, Data: 0, Empty: 0
+* Demux speed on file a.madp.mix.pes: 878MB/s, Data: 240, Empty: 0
+* Spdifer speed on noise: 334MB/s, Data: 0, Empty: 0
+* Spdifer speed on file a.mad.mix.mad: 2375MB/s, Data: 0, Empty: 0
+* Spdifer speed on file a.mad.mix.spdif: 1612MB/s, Data: 0, Empty: 0
+* Total time: 1:52
+
+-------------------------------------------------------------------------------
+Date:   2006/06/02 06:37
+Host:   VAL
+OS:     Microsoft Windows XP Professional
+CPU:    2 Processor(s) Installed.
+CPU:    [01]: x86 Family 15 Model 2 Stepping 9 GenuineIntel ~2798 Mhz
+CPU:    [02]: x86 Family 15 Model 2 Stepping 9 GenuineIntel ~2798 Mhz
+Mem:    2ÿ047 MB
+
+Compiler: GCC 3.4.2 (mingw-special)
+Debug/Release: Release
+Build date: Jul  2 2006
+Number of channels: 6
+Sample format: double
+Sample size: 8
+
+* CRC speed (table method): 252MB/s
+* CRC byte stream speed: 324MB/s
+* CRC 14bit BE speed: 310MB/s
+* CRC 14bit LE speed: 315MB/s
+* CRC 16bit BE speed: 320MB/s
+* CRC 16bit LE speed: 315MB/s
+* CRC 32bit BE speed: 320MB/s
+* CRC 32bit LE speed: 324MB/s
+* No CRC: 1019MB/s CRC: 1028MB/s (1.0 times speed diff)
+* No CRC: 488MB/s CRC: 500MB/s (1.0 times speed diff)
+* No CRC: 1082MB/s CRC: 245MB/s (4.4 times speed diff)
+* No CRC: 509MB/s CRC: 346MB/s (1.5 times speed diff)
+* No CRC: 435MB/s CRC: 442MB/s (1.0 times speed diff)
+* No CRC: 433MB/s CRC: 417MB/s (1.0 times speed diff)
+* Sync scan speed: 360MB/s, Syncpoints found: 1683
+* Sync scan speed: 490MB/s, Syncpoints found: 1683
+* Demux speed on noise: 500MB/s, Data: 0, Empty: 0
+* Demux speed on file a.madp.mix.pes: 893MB/s, Data: 240, Empty: 0
+* Spdifer speed on noise: 340MB/s, Data: 0, Empty: 0
+* Spdifer speed on file a.mad.mix.mad: 2304MB/s, Data: 0, Empty: 0
+* Spdifer speed on file a.mad.mix.spdif: 2128MB/s, Data: 0, Empty: 0
+* Total time: 1:31
+
+-------------------------------------------------------------------------------
+Date:   2006/06/02 07:04
+Host:   VAL
+OS:     Microsoft Windows XP Professional
+CPU:    2 Processor(s) Installed.
+CPU:    [01]: x86 Family 15 Model 2 Stepping 9 GenuineIntel ~2798 Mhz
+CPU:    [02]: x86 Family 15 Model 2 Stepping 9 GenuineIntel ~2798 Mhz
+Mem:    2ÿ047 MB
+
+Compiler: MSVC 1400
+Debug/Release: Release
+Build date: Jul  2 2006 07:00:42
+Number of channels: 6
+Sample format: double
+Sample size: 8
+
+* CRC speed (table method): 260MB/s
+* CRC byte stream speed: 285MB/s
+* CRC 14bit BE speed: 275MB/s
+* CRC 14bit LE speed: 300MB/s
+* CRC 16bit BE speed: 285MB/s
+* CRC 16bit LE speed: 305MB/s
+* CRC 32bit BE speed: 285MB/s
+* CRC 32bit LE speed: 281MB/s
+* No CRC: 1088MB/s CRC: 1104MB/s (1.0 times speed diff)
+* No CRC: 590MB/s CRC: 604MB/s (1.0 times speed diff)
+* No CRC: 1073MB/s CRC: 227MB/s (4.7 times speed diff)
+* No CRC: 615MB/s CRC: 380MB/s (1.6 times speed diff)
+* No CRC: 435MB/s CRC: 429MB/s (1.0 times speed diff)
+* No CRC: 465MB/s CRC: 477MB/s (1.0 times speed diff)
+* Sync scan speed: 630MB/s, Syncpoints found: 1683
+* Sync scan speed: 640MB/s, Syncpoints found: 1683
+* Demux speed on noise: 630MB/s, Data: 0, Empty: 0
+* Demux speed on file a.madp.mix.pes: 863MB/s, Data: 240, Empty: 0
+* Spdifer speed on noise: 450MB/s, Data: 0, Empty: 0
+* Spdifer speed on file a.mad.mix.mad: 2299MB/s, Data: 0, Empty: 0
+* Spdifer speed on file a.mad.mix.spdif: 1628MB/s, Data: 0, Empty: 0
+* Total time: 1:22
+
+-------------------------------------------------------------------------------
+Date:   2006/06/02 08:16
+Host:   SRV-VALEX
+OS:     Microsoft(R) Windows(R) Server 2003, Enterprise Edition
+CPU:    1 Processor(s) Installed.
+CPU:    [01]: x86 Family 6 Model 7 Stepping 3 GenuineIntel ~551 Mhz
+Mem:    512 MB
+
+Compiler: MSVC 1200
+Debug/Release: Release
+Build date: Jul  2 2006 07:20:18
+Number of channels: 6
+Sample format: double
+Sample size: 8
+
+* CRC speed (table method): 24MB/s
+* CRC byte stream speed: 54MB/s
+* CRC 14bit BE speed: 50MB/s
+* CRC 14bit LE speed: 54MB/s
+* CRC 16bit BE speed: 55MB/s
+* CRC 16bit LE speed: 53MB/s
+* CRC 32bit BE speed: 54MB/s
+* CRC 32bit LE speed: 55MB/s
+* No CRC: 123MB/s CRC: 123MB/s (1.0 times speed diff)
+* No CRC: 64MB/s CRC: 65MB/s (1.0 times speed diff)
+* No CRC: 111MB/s CRC: 45MB/s (2.5 times speed diff)
+* No CRC: 66MB/s CRC: 52MB/s (1.3 times speed diff)
+* No CRC: 74MB/s CRC: 74MB/s (1.0 times speed diff)
+* No CRC: 64MB/s CRC: 64MB/s (1.0 times speed diff)
+* Sync scan speed: 56MB/s, Syncpoints found: 1683
+* Sync scan speed: 57MB/s, Syncpoints found: 1683
+* Demux speed on noise: 56MB/s, Data: 0, Empty: 0
+* Demux speed on file a.madp.mix.pes: 104MB/s, Data: 240, Empty: 0
+* Spdifer speed on noise: 43MB/s, Data: 0, Empty: 0
+* Spdifer speed on file a.mad.mix.mad: 200MB/s, Data: 0, Empty: 0
+* Spdifer speed on file a.mad.mix.spdif: 189MB/s, Data: 0, Empty: 0
+* Total time: 6:12
+
+-------------------------------------------------------------------------------
+Date:   2006/06/02 08:16
+Host:   SRV-VALEX
+OS:     Microsoft(R) Windows(R) Server 2003, Enterprise Edition
+CPU:    1 Processor(s) Installed.
+CPU:    [01]: x86 Family 6 Model 7 Stepping 3 GenuineIntel ~551 Mhz
+Mem:    512 MB
+
+Compiler: GCC 3.4.2 (mingw-special)
+Debug/Release: Release
+Build date: Jul  2 2006 07:23:12
+Number of channels: 6
+Sample format: double
+Sample size: 8
+
+* CRC speed (table method): 43MB/s
+* CRC byte stream speed: 54MB/s
+* CRC 14bit BE speed: 49MB/s
+* CRC 14bit LE speed: 58MB/s
+* CRC 16bit BE speed: 54MB/s
+* CRC 16bit LE speed: 58MB/s
+* CRC 32bit BE speed: 54MB/s
+* CRC 32bit LE speed: 61MB/s
+* No CRC: 121MB/s CRC: 121MB/s (1.0 times speed diff)
+* No CRC: 64MB/s CRC: 64MB/s (1.0 times speed diff)
+* No CRC: 138MB/s CRC: 48MB/s (2.8 times speed diff)
+* No CRC: 67MB/s CRC: 55MB/s (1.2 times speed diff)
+* No CRC: 75MB/s CRC: 76MB/s (1.0 times speed diff)
+* No CRC: 64MB/s CRC: 64MB/s (1.0 times speed diff)
+* Sync scan speed: 53MB/s, Syncpoints found: 1683
+* Sync scan speed: 56MB/s, Syncpoints found: 1683
+* Demux speed on noise: 57MB/s, Data: 0, Empty: 0
+* Demux speed on file a.madp.mix.pes: 104MB/s, Data: 240, Empty: 0
+* Spdifer speed on noise: 42MB/s, Data: 0, Empty: 0
+* Spdifer speed on file a.mad.mix.mad: 206MB/s, Data: 0, Empty: 0
+* Spdifer speed on file a.mad.mix.spdif: 185MB/s, Data: 0, Empty: 0
+* Total time: 5:23
+
+-------------------------------------------------------------------------------
+Date:   2006/11/20 23:42
+Host:   VAL
+OS:     Microsoft Windows XP Professional
+CPU:    2 Processor(s) Installed.
+CPU:    [01]: x86 Family 15 Model 2 Stepping 9 GenuineIntel ~2798 Mhz
+CPU:    [02]: x86 Family 15 Model 2 Stepping 9 GenuineIntel ~2798 Mhz
+Mem:    2ÿ047 MB
+
+Compiler: MSVC 1200
+Debug/Release: Release
+Build date: Dec 20 2006 20:41:48
+Number of channels: 6
+Sample format: double
+Sample size: 8
+
+* CRC speed (table method): 240MB/s
+* CRC byte stream speed: 300MB/s
+* CRC 14bit BE speed: 270MB/s
+* CRC 14bit LE speed: 270MB/s
+* CRC 16bit BE speed: 295MB/s
+* CRC 16bit LE speed: 300MB/s
+* CRC 32bit BE speed: 295MB/s
+* CRC 32bit LE speed: 315MB/s
+* Sync scan speed: 460MB/s, Syncpoints found: 1683
+* Sync scan speed: 470MB/s, Syncpoints found: 1683
+* StreamBuffer speed on noise: 87MB/s
+* StreamBuffer speed on a.mp2.002.mp2: 1003MB/s
+* StreamBuffer speed on a.mp2.005.mp2: 1249MB/s
+* StreamBuffer speed on a.mp2.mix.mp2: 1154MB/s
+* StreamBuffer speed on a.mp2.005.spdif: 94MB/s
+* StreamBuffer speed on a.ac3.005.ac3: 1937MB/s
+* StreamBuffer speed on a.ac3.03f.ac3: 1701MB/s
+* StreamBuffer speed on a.ac3.mix.ac3: 1657MB/s
+* StreamBuffer speed on a.ac3.03f.spdif: 86MB/s
+* StreamBuffer speed on a.dts.03f.dts: 1139MB/s
+* StreamBuffer speed on a.dts.03f.spdif: 1522MB/s
+* StreamBuffer speed on a.mp2.005.spdif: 1628MB/s
+* StreamBuffer speed on a.ac3.03f.spdif: 1792MB/s
+* StreamBuffer speed on a.dts.03f.spdif: 1338MB/s
+* StreamBuffer speed on a.mad.mix.spdif: 1628MB/s
+* StreamBuffer speed on a.mad.mix.mad: 1201MB/s
+* StreamBuffer speed on a.mad.mix.spdif: 1290MB/s
+
+* Conversion (none)  speed: 1544MB/s
+* Conversion swab16  speed: 577MB/s
+* Conversion 8->14be speed: 424MB/s
+* Conversion 8->14le speed: 332MB/s
+* Conversion 14be->8 speed: 490MB/s
+* Conversion 14le->8 speed: 380MB/s
+* Conversion 14be->16le speed: 288MB/s
+* Conversion 14le->16le speed: 240MB/s
+* Demux speed on noise: 480MB/s, Data: 0, Empty: 0
+* Demux speed on file a.madp.mix.pes: 863MB/s, Data: 240, Empty: 0
+* Spdifer speed on noise: 13MB/s, Data: 0, Empty: 0
+* Spdifer speed on file a.mad.mix.mad: 2353MB/s, Data: 0, Empty: 0
+* Spdifer speed on file a.mad.mix.spdif: 1677MB/s, Data: 0, Empty: 0
+* Total time: 1:45
+
+-------------------------------------------------------------------------------
+Date:   2006/11/20 23:49
+Host:   SRV-VALEX
+OS:     Microsoft(R) Windows(R) Server 2003, Enterprise Edition
+CPU:    1 Processor(s) Installed.
+CPU:    [01]: x86 Family 6 Model 7 Stepping 3 GenuineIntel ~551 Mhz
+Mem:    512 MB
+
+Compiler: MSVC 1200
+Debug/Release: Release
+Build date: Dec 20 2006 20:41:48
+Number of channels: 6
+Sample format: double
+Sample size: 8
+
+* CRC speed (table method): 26MB/s
+* CRC byte stream speed: 47MB/s
+* CRC 14bit BE speed: 41MB/s
+* CRC 14bit LE speed: 46MB/s
+* CRC 16bit BE speed: 47MB/s
+* CRC 16bit LE speed: 44MB/s
+* CRC 32bit BE speed: 46MB/s
+* CRC 32bit LE speed: 47MB/s
+* Sync scan speed: 48MB/s, Syncpoints found: 1683
+* Sync scan speed: 48MB/s, Syncpoints found: 1683
+* StreamBuffer speed on noise: 12MB/s
+* StreamBuffer speed on a.mp2.002.mp2: 153MB/s
+* StreamBuffer speed on a.mp2.005.mp2: 124MB/s
+* StreamBuffer speed on a.mp2.mix.mp2: 106MB/s
+* StreamBuffer speed on a.mp2.005.spdif: 13MB/s
+* StreamBuffer speed on a.ac3.005.ac3: 274MB/s
+* StreamBuffer speed on a.ac3.03f.ac3: 218MB/s
+* StreamBuffer speed on a.ac3.mix.ac3: 219MB/s
+* StreamBuffer speed on a.ac3.03f.spdif: 14MB/s
+* StreamBuffer speed on a.dts.03f.dts: 135MB/s
+* StreamBuffer speed on a.dts.03f.spdif: 193MB/s
+* StreamBuffer speed on a.mp2.005.spdif: 209MB/s
+* StreamBuffer speed on a.ac3.03f.spdif: 191MB/s
+* StreamBuffer speed on a.dts.03f.spdif: 174MB/s
+* StreamBuffer speed on a.mad.mix.spdif: 191MB/s
+* StreamBuffer speed on a.mad.mix.mad: 133MB/s
+* StreamBuffer speed on a.mad.mix.spdif: 157MB/s
+
+* Conversion (none)  speed: 157MB/s
+* Conversion swab16  speed: 41MB/s
+* Conversion 8->14be speed: 56MB/s
+* Conversion 8->14le speed: 51MB/s
+* Conversion 14be->8 speed: 61MB/s
+* Conversion 14le->8 speed: 57MB/s
+* Conversion 14be->16le speed: 34MB/s
+* Conversion 14le->16le speed: 32MB/s
+* Demux speed on noise: 47MB/s, Data: 0, Empty: 0
+* Demux speed on file a.madp.mix.pes: 84MB/s, Data: 240, Empty: 0
+* Spdifer speed on noise: 2MB/s, Data: 0, Empty: 0
+* Spdifer speed on file a.mad.mix.mad: 166MB/s, Data: 0, Empty: 0
+* Spdifer speed on file a.mad.mix.spdif: 85MB/s, Data: 0, Empty: 0
+* Total time: 7:04
+

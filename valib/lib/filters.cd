@@ -1,0 +1,242 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="AudioDecoder" Collapsed="true">
+    <Position X="2.25" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gAAAQgAEAIAAAAAAAAIAAQICAACAQAACYAQCAAAAIQA=</HashCode>
+      <FileName>c:\Temp\valib\valib\valib\filters\decoder.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Filter" Collapsed="true">
+    <Position X="3.5" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gAGAAAAEAAAAAAAAAAIAAQIKAACEAAACIAAAAAAAAAA=</HashCode>
+      <FileName>c:\Temp\valib\valib\valib\filter.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Sink" Collapsed="true">
+    <Position X="2" Y="0.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gAAAAAAAAAAAAAAAAAAAAEIAAAAAAAACIAAAAAAAAAA=</HashCode>
+      <FileName>c:\Temp\valib\valib\valib\filter.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Source" Collapsed="true">
+    <Position X="5" Y="0.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAQACAACAAACAAAAAAAAAAAA=</HashCode>
+      <FileName>c:\Temp\valib\valib\valib\filter.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="AGC" Collapsed="true">
+    <Position X="5.25" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>EEAAAAAGAIQQQAAACBBAAAYCGAEAQACBAYgAAQQABAA=</HashCode>
+      <FileName>c:\Temp\valib\valib\valib\filters\agc.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="NullFilter" Collapsed="true">
+    <Position X="6.5" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gAABAAAEAIAIAAAAEIYAAQICACCQAAECIAAAoAAIABE=</HashCode>
+      <FileName>c:\Temp\valib\valib\valib\filter.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="BassRedir" Collapsed="true">
+    <Position X="7.75" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAIAAAAAAAASAAAABAIAACAEAAAAEAAAAABA=</HashCode>
+      <FileName>c:\Temp\valib\valib\valib\filters\bass_redir.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CacheFilter" Collapsed="true">
+    <Position X="10" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>CQAkAAICAIBBAAAAAAAFCIAAAAgAAAIAAAAAAAAAAAA=</HashCode>
+      <FileName>c:\Temp\valib\valib\valib\filters\cache.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="LinearFilter" Collapsed="true">
+    <Position X="11.25" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gQAgIEAECIAJAAAAAIIEBUICAiCRAAICIAgIgCAgAAA=</HashCode>
+      <FileName>c:\Temp\valib\valib\valib\filters\linear_filter.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Converter" Collapsed="true">
+    <Position X="5.25" Y="6" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gAgAIAAHSAAAgAACCBEECQICABAAIIAAIIAAgMAIAAA=</HashCode>
+      <FileName>c:\Temp\valib\valib\valib\filters\convert.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Convolver" Collapsed="true">
+    <Position X="10" Y="6" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAACAIEBQgAAACAEVMAAAAQAAAKEEAgAgKAACCg=</HashCode>
+      <FileName>c:\Temp\valib\valib\valib\filters\convolver.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ConvolverMch" Collapsed="true">
+    <Position X="10" Y="7.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAACEIUBQIAAACgEUIAAAARDAQKAEAgggKAACCg=</HashCode>
+      <FileName>c:\Temp\valib\valib\valib\filters\convolver_mch.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Counter" Collapsed="true">
+    <Position X="7.75" Y="6" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAIAAAAAAAAQAAAACAQAAAAEAAAAAAAAAAAA=</HashCode>
+      <FileName>c:\Temp\valib\valib\valib\filters\counter.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DecoderGraph" Collapsed="true">
+    <Position X="13" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IAACIhAEAAAAAAAAAAAAkAAAAAQQAAAAgAAAAIACAAA=</HashCode>
+      <FileName>c:\Temp\valib\valib\valib\filters\decoder_graph.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="FilterGraph" Collapsed="true">
+    <Position X="14.25" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>iAACABAGCAAIAQAoBAIAEQICAASYAAACoABgQIIgAIA=</HashCode>
+      <FileName>c:\Temp\valib\valib\valib\filter_graph.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Syncer" Collapsed="true">
+    <Position X="5.25" Y="7.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gEAAABAEQMAAIAQCACggAEISBAQACiAAIAAAIAAAAgI=</HashCode>
+      <FileName>c:\Temp\valib\valib\valib\filters\dejitter.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Delay" Collapsed="true">
+    <Position X="7.75" Y="7.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAIAADAKAAAAAAAASAACiBAAIYAAMAAAAAAAAAABg=</HashCode>
+      <FileName>c:\Temp\valib\valib\valib\filters\delay.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Demux" Collapsed="true">
+    <Position X="5.25" Y="8.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ABAAAAAECACAAAAAAAIBAQICAACAAAAgCAAAAIAgAAA=</HashCode>
+      <FileName>c:\Temp\valib\valib\valib\filters\demux.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Detector" Collapsed="true">
+    <Position X="7.75" Y="8.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>oAAAAgQEBIAAAAAAAAIAAUJCAACQAAAEagAAAIEgAAA=</HashCode>
+      <FileName>c:\Temp\valib\valib\valib\filters\detector.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Dither" Collapsed="true">
+    <Position X="5.25" Y="9.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAEAAAAAAAAAAAAAAQAAAAAAAEAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>c:\Temp\valib\valib\valib\filters\dither.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Spdif2PCM" Collapsed="true">
+    <Position X="7.75" Y="9.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAIAAAAAAAAAAAAAAQACAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>c:\Temp\valib\valib\valib\filters\dvd_graph.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DVDGraph" Collapsed="true">
+    <Position X="13" Y="6" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IUADMhKWRkICgAIgEBhE0iBLCQURADAAoUCAgo4K4IA=</HashCode>
+      <FileName>c:\Temp\valib\valib\valib\filters\dvd_graph.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Equalizer" Collapsed="true">
+    <Position X="2.25" Y="6" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gAAAAAAEAAAAAAEAMIKSAQIDABCEAAACIAAAAAAAABA=</HashCode>
+      <FileName>c:\Temp\valib\valib\valib\filters\equalizer.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="EqualizerMch" Collapsed="true">
+    <Position X="2.25" Y="7.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gAAAAAAEAIAACAEAIIKCAQIDAACEAAACIBQAAACAABA=</HashCode>
+      <FileName>c:\Temp\valib\valib\valib\filters\equalizer_mch.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Gain" Collapsed="true">
+    <Position X="5.25" Y="11" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAQAAAAAAAABAAAAAQAAAAAAAAA=</HashCode>
+      <FileName>c:\Temp\valib\valib\valib\filters\gain.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Levels" Collapsed="true">
+    <Position X="7.75" Y="11" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ACAAAAAIgIBEIAAAIRQAAAAAIAEAQEABAEAAAAAAAAA=</HashCode>
+      <FileName>c:\Temp\valib\valib\valib\filters\levels.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Mixer" Collapsed="true">
+    <Position X="5.25" Y="12.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>CaBerx8CAAB6vYABLBCC/69XChEBECAAK4INe/9lAAg=</HashCode>
+      <FileName>c:\Temp\valib\valib\valib\filters\mixer.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ParserFilter" Collapsed="true">
+    <Position X="7.75" Y="12.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>oAiAAgAEAICAAAAAAAMAAUIDAAiAQAAESAAAAIAgMAA=</HashCode>
+      <FileName>c:\Temp\valib\valib\valib\filters\parser_filter.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="AudioProcessor" Collapsed="true">
+    <Position X="2.25" Y="8.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>uSAaIv9s4VFWTYaAo4J7gSqDEBmENCwKogCtERWiAIk=</HashCode>
+      <FileName>c:\Temp\valib\valib\valib\filters\proc.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Resample" Collapsed="true">
+    <Position X="5.25" Y="13.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>EgGAYUAFCQAAAAQOEC1IRUgCAJC1RAAoJqBaAgAhQCk=</HashCode>
+      <FileName>c:\Temp\valib\valib\valib\filters\resample.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SliceFilter" Collapsed="true">
+    <Position X="7.75" Y="13.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAACAIAAAAAgAAQAAIAAAAAAAAIAAAAAAAAgAAA=</HashCode>
+      <FileName>c:\Temp\valib\valib\valib\filters\slice.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Spdifer" Collapsed="true">
+    <Position X="2.25" Y="9.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gAABAgAEAIAAEAAAAgJAEQICAACAQAACYAAAAAQAIAA=</HashCode>
+      <FileName>c:\Temp\valib\valib\valib\filters\spdifer.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Despdifer" Collapsed="true">
+    <Position X="2.25" Y="11" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gAEAAgAEAIAAAAAAAAIAAQICABCAwAACYAAAAAAAMAA=</HashCode>
+      <FileName>c:\Temp\valib\valib\valib\filters\spdifer.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Spectrum" Collapsed="true">
+    <Position X="5.25" Y="14.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAIAAQAAEAEQAAIAAAAAAAAIAAEAQEAgAEBA=</HashCode>
+      <FileName>c:\Temp\valib\valib\valib\filters\spectrum.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Font Name="Tahoma" Size="8.25" />
+</ClassDiagram>

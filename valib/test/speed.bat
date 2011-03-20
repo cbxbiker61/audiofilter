@@ -1,0 +1,1 @@
+perl speed.pl < test.log >> speed.log
