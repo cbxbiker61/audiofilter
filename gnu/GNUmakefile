@@ -5,9 +5,9 @@ VPATH = $(TOP)/tools:$(TOP)/lib:$(TOP)/lib/dsp:$(TOP)/lib/filters
 ARCH=$(shell uname -m)
 CXX = g++
 DEFS = -D_GNU_SOURCE
-OPTFLAGS = -g -O -Wall
+CXXFLAGS = -g -O -Wall
 INCLUDES = -I$(TOP)/include -I$(TOP)/lib
-CXXFLAGS = $(ARCHFLAG) $(DEFS) $(OPTFLAGS) $(INCLUDES)
+CxxCompFlags = $(ARCHFLAG) $(DEFS) $(CXXFLAGS) $(INCLUDES)
 BINDIR = /usr/bin
 LibName := AudioFilter
 LIBS := -L. -l$(LibName)
@@ -49,34 +49,34 @@ install:
 endif
 
 .cpp.o:
-	$(CXX) -c $(CXXFLAGS) $< -o $@
+	$(CXX) -c $(CxxCompFlags) $< -o $@
 
 ac3enc: ac3enc.o $(acLib)
-	$(CXX) $(CXXFLAGS) $< $(LIBS) -o $@
+	$(CXX) $(CxxCompFlags) $< $(LIBS) -o $@
 
 bsconvert: bsconvert.o $(acLib)
-	$(CXX) $(CXXFLAGS) $< $(LIBS) -o $@
+	$(CXX) $(CxxCompFlags) $< $(LIBS) -o $@
 
 equalizer: equalizer.o $(acLib)
-	$(CXX) $(CXXFLAGS) $< $(LIBS) -o $@
+	$(CXX) $(CxxCompFlags) $< $(LIBS) -o $@
 
 noise: noise.o $(acLib)
-	$(CXX) $(CXXFLAGS) $< $(LIBS) -o $@
+	$(CXX) $(CxxCompFlags) $< $(LIBS) -o $@
 
 mpeg_demux: mpeg_demux.o $(acLib)
-	$(CXX) $(CXXFLAGS) $< $(LIBS) -o $@
+	$(CXX) $(CxxCompFlags) $< $(LIBS) -o $@
 
 spdifer: spdifer.o $(acLib)
-	$(CXX) $(CXXFLAGS) $< $(LIBS) -o $@
+	$(CXX) $(CxxCompFlags) $< $(LIBS) -o $@
 
 swab: swab.o $(acLib)
-	$(CXX) $(CXXFLAGS) $< $(LIBS) -o $@
+	$(CXX) $(CxxCompFlags) $< $(LIBS) -o $@
 
 valdec: valdec.o $(acLib)
-	$(CXX) $(CXXFLAGS) $< $(LIBS) -o $@
+	$(CXX) $(CxxCompFlags) $< $(LIBS) -o $@
 
 wavdiff: wavdiff.o $(acLib)
-	$(CXX) $(CXXFLAGS) $< $(LIBS) -o $@
+	$(CXX) $(CxxCompFlags) $< $(LIBS) -o $@
 
 $(acLib): $(acLibObjs)
 	ar cru $@ $^
