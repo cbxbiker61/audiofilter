@@ -154,8 +154,22 @@ bool SpdifWrapper::parseFrame(uint8_t *frame, size_t size)
   size_t spdifFrameSize(_hi.nsamples * 4);
   const bool isHd(_hi.isHd());
 
+  size_t maxSpdifFrameSize(2048);
+  size_t spdifHeaderSize(sizeof(SpdifHeaderSync0));
+
   if ( isHd )
+  {
     spdifFrameSize *= 4; // better way to do this I'm sure
+    maxSpdifFrameSize *= 4;
+    spdifHeaderSize = (sizeof(SpdifHeaderSync) + sizeof(DtsHdHeader));
+  }
+
+  const size_t spdifDataSize(spdifFrameSize - spdifHeaderSize);
+
+  if ( rawSize > spdifDataSize )
+  {
+    rawSize = spdifDataSize;
+  }
 
   if ( spdifFrameSize > MAX_SPDIF_FRAME_SIZE )
   {
@@ -180,11 +194,11 @@ bool SpdifWrapper::parseFrame(uint8_t *frame, size_t size)
       case DTS_MODE_WRAPPED:
         _useHeader = true;
 
-        if ( frameGrows && (rawSize * 8 / 7 <= spdifFrameSize - sizeof(SpdifHeaderSync0)) )
+        if ( frameGrows && (rawSize * 8 / 7 <= spdifDataSize) )
           _spdifBsType = BITSTREAM_14LE;
-        else if ( frameShrinks && (rawSize * 7 / 8 <= spdifFrameSize - sizeof(SpdifHeaderSync0)) )
+        else if ( frameShrinks && (rawSize * 7 / 8 <= spdifDataSize) )
           _spdifBsType = BITSTREAM_16LE;
-        else if ( rawSize <= spdifFrameSize - sizeof(SpdifHeaderSync0) )
+        else if ( rawSize <= spdifDataSize )
           _spdifBsType = is14Bit(_hi.bs_type) ? BITSTREAM_14LE : BITSTREAM_16LE;
         else
         {
@@ -219,7 +233,7 @@ bool SpdifWrapper::parseFrame(uint8_t *frame, size_t size)
 
       case DTS_MODE_AUTO:
       default:
-        if ( frameGrows && (rawSize * 8 / 7 <= spdifFrameSize - sizeof(SpdifHeaderSync0)) )
+        if ( frameGrows && (rawSize * 8 / 7 <= spdifDataSize) )
         {
           _useHeader = true;
           _spdifBsType = BITSTREAM_14LE;
@@ -230,7 +244,7 @@ bool SpdifWrapper::parseFrame(uint8_t *frame, size_t size)
           _spdifBsType = BITSTREAM_14LE;
         }
 
-        if ( frameShrinks && (rawSize * 7 / 8 <= spdifFrameSize - sizeof(SpdifHeaderSync0)) )
+        if ( frameShrinks && (rawSize * 7 / 8 <= spdifDataSize) )
         {
           _useHeader = true;
           _spdifBsType = BITSTREAM_14LE;
@@ -240,7 +254,7 @@ bool SpdifWrapper::parseFrame(uint8_t *frame, size_t size)
           _useHeader = false;
           _spdifBsType = BITSTREAM_14LE;
         }
-        else if ( rawSize <= spdifFrameSize - sizeof(SpdifHeaderSync0) )
+        else if ( rawSize <= spdifDataSize )
         {
           _useHeader = true;
           _spdifBsType = is14Bit(_hi.bs_type) ? BITSTREAM_14LE : BITSTREAM_16LE;
@@ -264,20 +278,8 @@ bool SpdifWrapper::parseFrame(uint8_t *frame, size_t size)
   }
   else
   {
-    if ( rawSize <= spdifFrameSize - sizeof(SpdifHeaderSync0) )
-    {
-      _useHeader = true;
-      _spdifBsType = BITSTREAM_16LE;
-    }
-    else
-    {
-      // impossible to wrap
-      // passthrough non-spdifable data
-      _spk = _hi.spk;
-      _spdif.ptr = rawFrame;
-      _spdif.size = rawSize;
-      return true;
-    }
+    _useHeader = true;
+    _spdifBsType = BITSTREAM_16LE;
   }
 
   /////////////////////////////////////////////////////////
@@ -289,12 +291,11 @@ bool SpdifWrapper::parseFrame(uint8_t *frame, size_t size)
   {
     if ( isHd )
     {
-      const size_t hdrSiz(sizeof(SpdifHeaderSync) + sizeof(DtsHdHeader));
       payloadSize = bs_convert(rawFrame, rawSize, _hi.bs_type
-                      , _buf + hdrSiz, _spdifBsType);
-      assert(payloadSize < MAX_SPDIF_FRAME_SIZE - hdrSiz);
-      memset(_buf + hdrSiz + payloadSize , 0
-                , spdifFrameSize - hdrSiz - payloadSize);
+                      , _buf + spdifHeaderSize, _spdifBsType);
+      assert(payloadSize <= spdifDataSize);
+      memset(_buf + spdifHeaderSize + payloadSize , 0
+                , spdifDataSize - payloadSize);
 
       // correct DTS syncword when converting to 14bit
       if ( _spdifBsType == BITSTREAM_14LE )
@@ -308,11 +309,11 @@ bool SpdifWrapper::parseFrame(uint8_t *frame, size_t size)
     else
     {
       payloadSize = bs_convert(rawFrame, rawSize, _hi.bs_type
-                      , _buf + sizeof(SpdifHeaderSync0) , _spdifBsType);
-      assert(payloadSize < MAX_SPDIF_FRAME_SIZE - sizeof(SpdifHeaderSync0));
-      memset(_buf + sizeof(SpdifHeaderSync0) + payloadSize
+                      , _buf + spdifHeaderSize, _spdifBsType);
+      assert(payloadSize <= spdifDataSize);
+      memset(_buf + spdifHeaderSize + payloadSize
                 , 0
-                , spdifFrameSize - sizeof(SpdifHeaderSync0) - payloadSize);
+                , spdifDataSize - payloadSize);
 
       // correct DTS syncword when converting to 14bit
       if ( _spdifBsType == BITSTREAM_14LE )
@@ -325,7 +326,7 @@ bool SpdifWrapper::parseFrame(uint8_t *frame, size_t size)
   else
   {
     payloadSize = bs_convert(rawFrame, rawSize, _hi.bs_type, _buf, _spdifBsType);
-    assert(payloadSize < MAX_SPDIF_FRAME_SIZE);
+    assert(payloadSize <= spdifFrameSize);
     memset(_buf + payloadSize, 0, spdifFrameSize - payloadSize);
 
     // correct DTS syncword when converting to 14bit
