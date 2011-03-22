@@ -28,8 +28,9 @@ class SpdifWrapper : public FrameParser
 public:
 
   SpdifWrapper(HeaderParser *hp = 0
-                  , int dts_mode = DTS_MODE_AUTO
-                  , int dts_conv = DTS_CONV_NONE);
+                  , int hdFreqMult = 4
+                  , int dtsMode = DTS_MODE_AUTO
+                  , int dtsConv = DTS_CONV_NONE);
   ~SpdifWrapper();
 
   HeaderInfo getHeaderInfo(void) const
@@ -95,7 +96,7 @@ protected:
 
   bool _useHeader; // use SPDIF header
   int _spdifBsType; // SPDIF bitstream type
-
+  int _hdFreqMult;
 };
 
 }; // namespace AudioFilter

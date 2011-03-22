@@ -21,11 +21,12 @@ int main(int argc, const char **argv)
 "This utility encapsulates AC3/DTS/MPEG Audio stream into SPDIF stream\n"
 "according to IEC 61937\n"
 "\n"
-"This utility is a part of AC3Filter project (http://ac3filter.net)\n"
+"This utility is a part of AudioFilter project (git://github.com/cbxbiker61/audiofilter.git)\n"
 "Copyright (c) 2007-2009 by Alexander Vigovsky\n"
+"Copyright (c) 2011 Kelly Anderson\n"
 "\n"
 "Usage:\n"
-"  spdifer input_file output_file [-raw | -wav]\n"
+"  spdifer input_file output_file [-raw | -wav] [hdfreqMult]\n"
 "\n"
 "Options:\n"
 "  input_file  - file to convert\n"
@@ -43,6 +44,9 @@ int main(int argc, const char **argv)
   Sink *sink = ( argc <= 3 || strcmp(argv[3], "-wav") )
     ? (Sink*)(new RawSink(outfile))
     : (Sink*)(new WavSink(outfile));
+  int hdFreqMult(4);
+  if ( argc >= 5 )
+    hdFreqMult = 8;
 
   MultiHeaderParser *mhp(new MultiHeaderParser());
   mhp->addParser(new SpdifHeaderParser());
@@ -50,7 +54,7 @@ int main(int argc, const char **argv)
   mhp->addParser(new MpaHeaderParser());
   mhp->addParser(new Ac3HeaderParser());
   FileParser *fp(new FileParser(infile, mhp));
-  SpdifWrapper spdif(mhp);
+  SpdifWrapper spdif(mhp, hdFreqMult);
 
   int streams(0);
   int frames(0);

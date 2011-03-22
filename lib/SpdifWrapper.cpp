@@ -58,7 +58,7 @@ public:
 
 namespace AudioFilter {
 
-SpdifWrapper::SpdifWrapper(HeaderParser *ph, int dtsMode, int dtsConv)
+SpdifWrapper::SpdifWrapper(HeaderParser *ph, int hdFreqMult, int dtsMode, int dtsConv)
   : _dtsMode(dtsMode)
   , _dtsConv(dtsConv)
   , _buf(new uint8_t[MAX_SPDIF_FRAME_SIZE])
@@ -68,6 +68,9 @@ SpdifWrapper::SpdifWrapper(HeaderParser *ph, int dtsMode, int dtsConv)
   , _hi()
   , _spk()
   , _spdif()
+  , _useHeader(true)
+  , _spdifBsType(0)
+  , _hdFreqMult(hdFreqMult)
 {
 
   if ( ! ph )
@@ -159,8 +162,8 @@ bool SpdifWrapper::parseFrame(uint8_t *frame, size_t size)
 
   if ( isHd )
   {
-    spdifFrameSize *= 4; // better way to do this I'm sure
-    maxSpdifFrameSize *= 4;
+    spdifFrameSize *= _hdFreqMult;
+    maxSpdifFrameSize *= _hdFreqMult;
     spdifHeaderSize = (sizeof(SpdifHeaderSync) + sizeof(DtsHdHeader));
   }
 
@@ -303,7 +306,7 @@ bool SpdifWrapper::parseFrame(uint8_t *frame, size_t size)
 
       SpdifHeaderSync *hs((SpdifHeaderSync *)_buf);
       DtsHdHeader *hd((DtsHdHeader *)(_buf+sizeof(SpdifHeaderSync)));
-      hs->set(0x0211, rawSize + sizeof(DtsHdHeader));
+      hs->set( (_hdFreqMult == 8) ? 0x0311 : 0x0211, rawSize + sizeof(DtsHdHeader));
       hd->setSize(rawSize);
     }
     else
