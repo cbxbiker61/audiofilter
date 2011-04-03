@@ -24,6 +24,9 @@
  * castSize() casts the value to size_t. Returns -1 when the value is too large.
  */
 
+#ifdef __GNUC__
+#include <sys/types.h>
+#endif
 #include <cstdio>
 #include "Defs.h"
 
