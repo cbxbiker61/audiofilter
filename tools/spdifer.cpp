@@ -46,7 +46,7 @@ int main(int argc, const char **argv)
     : (Sink*)(new WavSink(outfile));
   int hdFreqMult(4);
   if ( argc >= 5 )
-    hdFreqMult = 8;
+    hdFreqMult = 16;
 
   MultiHeaderParser *mhp(new MultiHeaderParser());
   mhp->addParser(new SpdifHeaderParser());

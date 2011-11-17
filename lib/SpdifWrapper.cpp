@@ -9,8 +9,7 @@ inline bool is14Bit(int bs_type)
   return (bs_type == BITSTREAM_14LE) || (bs_type == BITSTREAM_14BE);
 }
 
-//const size_t MAX_SPDIF_FRAME_SIZE(8192);
-const size_t MAX_SPDIF_FRAME_SIZE(16384);
+const size_t MAX_SPDIF_FRAME_SIZE(16384*4);
 
 class DtsHdHeader
 {
@@ -306,7 +305,8 @@ bool SpdifWrapper::parseFrame(uint8_t *frame, size_t size)
 
       SpdifHeaderSync *hs((SpdifHeaderSync *)_buf);
       DtsHdHeader *hd((DtsHdHeader *)(_buf+sizeof(SpdifHeaderSync)));
-      hs->set( (_hdFreqMult == 8) ? 0x0311 : 0x0211, rawSize + sizeof(DtsHdHeader));
+      hs->set( (_hdFreqMult == 16) ? 0x0411 : ((_hdFreqMult == 8) ? 0x0311 : 0x0211)
+                      , rawSize + sizeof(DtsHdHeader));
       hd->setSize(rawSize);
     }
     else
