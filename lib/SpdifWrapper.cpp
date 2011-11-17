@@ -70,7 +70,9 @@ SpdifWrapper::SpdifWrapper(HeaderParser *ph, int hdFreqMult, int dtsMode, int dt
   , _useHeader(true)
   , _spdifBsType(0)
   , _hdFreqMult(hdFreqMult)
+  , _clearOffsetLast(0)
 {
+  ::memset(_buf, 0, MAX_SPDIF_FRAME_SIZE);
 
   if ( ! ph )
   {
@@ -296,8 +298,14 @@ bool SpdifWrapper::parseFrame(uint8_t *frame, size_t size)
       payloadSize = bs_convert(rawFrame, rawSize, _hi.bs_type
                       , _buf + spdifHeaderSize, _spdifBsType);
       assert(payloadSize <= spdifDataSize);
-      memset(_buf + spdifHeaderSize + payloadSize , 0
-                , spdifDataSize - payloadSize);
+
+      const size_t clearOffset(spdifHeaderSize + payloadSize);
+      //const size_t clearCount(spdifDataSize - payloadSize);
+
+      if ( _clearOffsetLast > clearOffset )
+        ::memset(_buf + clearOffset, 0, _clearOffsetLast - clearOffset);
+
+      _clearOffsetLast = clearOffset;
 
       // correct DTS syncword when converting to 14bit
       if ( _spdifBsType == BITSTREAM_14LE )
@@ -314,9 +322,14 @@ bool SpdifWrapper::parseFrame(uint8_t *frame, size_t size)
       payloadSize = bs_convert(rawFrame, rawSize, _hi.bs_type
                       , _buf + spdifHeaderSize, _spdifBsType);
       assert(payloadSize <= spdifDataSize);
-      memset(_buf + spdifHeaderSize + payloadSize
-                , 0
-                , spdifDataSize - payloadSize);
+
+      const size_t clearOffset(spdifHeaderSize + payloadSize);
+      //const size_t clearCount(spdifDataSize - payloadSize);
+
+      if ( _clearOffsetLast > clearOffset )
+        ::memset(_buf + clearOffset, 0, _clearOffsetLast - clearOffset);
+
+      _clearOffsetLast = clearOffset;
 
       // correct DTS syncword when converting to 14bit
       if ( _spdifBsType == BITSTREAM_14LE )
@@ -330,7 +343,14 @@ bool SpdifWrapper::parseFrame(uint8_t *frame, size_t size)
   {
     payloadSize = bs_convert(rawFrame, rawSize, _hi.bs_type, _buf, _spdifBsType);
     assert(payloadSize <= spdifFrameSize);
-    memset(_buf + payloadSize, 0, spdifFrameSize - payloadSize);
+
+      const size_t clearOffset(payloadSize);
+      //const size_t clearCount(spdifFrameSize - payloadSize);
+
+      if ( _clearOffsetLast > clearOffset )
+        ::memset(_buf + clearOffset, 0, _clearOffsetLast - clearOffset);
+
+      _clearOffsetLast = clearOffset;
 
     // correct DTS syncword when converting to 14bit
     if ( _spdifBsType == BITSTREAM_14LE )

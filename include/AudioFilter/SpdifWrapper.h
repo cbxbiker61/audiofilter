@@ -96,7 +96,9 @@ protected:
 
   bool _useHeader; // use SPDIF header
   int _spdifBsType; // SPDIF bitstream type
+private:
   int _hdFreqMult;
+  size_t _clearOffsetLast;
 };
 
 }; // namespace AudioFilter
