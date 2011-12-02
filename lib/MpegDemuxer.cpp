@@ -127,26 +127,26 @@ Speakers PSParser::spk(void)
       case 0: format = FORMAT_PCM16_BE; break;
       case 1: format = FORMAT_LPCM20;   break;
       case 2: format = FORMAT_LPCM24;   break;
-      default: return spk_unknown;
+      default: return Speakers::UNKNOWN;
     }
 
     mask = nch2mask[subheader[4] & 7];
 
     if ( ! mask )
-      return spk_unknown;
+      return Speakers::UNKNOWN;
 
     switch ( (subheader[4] >> 4) & 3 )
     {
       case 0: sample_rate = 48000; break;
       case 1: sample_rate = 96000; break;
-      default: return spk_unknown;
+      default: return Speakers::UNKNOWN;
     }
 
     return Speakers(format, mask, sample_rate);
   }
   else
     // not an audio format
-    return spk_unknown;
+    return Speakers::UNKNOWN;
 }
 
 size_t PSParser::parse(uint8_t **buf, uint8_t *end)

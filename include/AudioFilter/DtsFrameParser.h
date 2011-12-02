@@ -96,7 +96,7 @@ public:
   virtual void reset(void);
   virtual bool parseFrame(uint8_t *frame, size_t size);
 
-  virtual Speakers getSpk(void) const
+  virtual const Speakers &getSpeakers(void) const
   {
     return _spk;
   }
@@ -106,7 +106,7 @@ public:
     return _samples;
   }
 
-  virtual size_t getNSamples(void) const
+  virtual size_t getSampleCount(void) const
   {
     return _nSamples;
   }

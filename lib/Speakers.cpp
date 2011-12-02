@@ -45,16 +45,15 @@ namespace AudioFilter {
 // Constants for common audio formats
 ///////////////////////////////////////////////////////////////////////////////
 
-extern const Speakers spk_unknown = Speakers(FORMAT_UNKNOWN, 0, 0, 0, 0);
-extern const Speakers spk_rawdata = Speakers(FORMAT_RAWDATA, 0, 0, 0, 0);
+const Speakers Speakers::UNKNOWN(FORMAT_UNKNOWN, 0, 0, 0, 0);
+const Speakers Speakers::RAWDATA(FORMAT_RAWDATA, 0, 0, 0, 0);
 
 ///////////////////////////////////////////////////////////////////////////////
 // Constants for common channel orders
 ///////////////////////////////////////////////////////////////////////////////
 
-extern const int std_order[NCHANNELS] = { 0, 1, 2, 3, 4, 5 };
-
-extern const int win_order[NCHANNELS] = { CH_L, CH_R, CH_C, CH_LFE, CH_SL, CH_SR };
+extern const int std_order[NCHANNELS] = { 0, 1, 2, 3, 4, 5, 6, 7 };
+extern const int win_order[NCHANNELS] = { CH_L, CH_R, CH_C, CH_LFE, CH_SL, CH_SR, CH_SBL, CH_SBR };
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -239,7 +238,7 @@ const char *mode_text[64] =
 
 void samples_t::reorderToStd(Speakers _spk, const int _order[NCHANNELS])
 {
-  int mask = _spk.mask;
+  int mask(_spk.getMask());
   sample_t *tmp[NCHANNELS];
 
   int ch = 0;
@@ -259,7 +258,7 @@ void samples_t::reorderToStd(Speakers _spk, const int _order[NCHANNELS])
 
 void samples_t::reorderFromStd(Speakers _spk, const int _order[NCHANNELS])
 {
-  int mask = _spk.mask;
+  int mask(_spk.getMask());
   sample_t *tmp[NCHANNELS];
 
   int ch = 0;
@@ -281,7 +280,7 @@ void samples_t::reorder(Speakers _spk
   , const int _input_order[NCHANNELS]
   , const int _output_order[NCHANNELS])
 {
-  int mask = _spk.mask;
+  int mask(_spk.getMask());
   sample_t *tmp[NCHANNELS];
 
   int ch = 0;

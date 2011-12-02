@@ -49,16 +49,14 @@ Convolver::firChanged(void) const
 void
 Convolver::convolve(void)
 {
-  int i;
-  int ch, nch = getInSpk().nch();
-  sample_t *buf_ch, *delay_ch;
+  const int nch(getInSpk().getChannelCount());
 
-  for ( ch = 0; ch < nch; ++ch )
+  for ( int ch = 0; ch < nch; ++ch )
   {
     for ( int fft_pos = 0; fft_pos < buf_size; fft_pos += n )
     {
-      buf_ch = buf[ch] + fft_pos;
-      delay_ch = buf[ch] + buf_size;
+      sample_t *buf_ch = buf[ch] + fft_pos;
+      sample_t *delay_ch = buf[ch] + buf_size;
 
       memcpy(fft_buf, buf_ch, n * sizeof(sample_t));
       memset(fft_buf + n, 0, n * sizeof(sample_t));
@@ -68,7 +66,7 @@ Convolver::convolve(void)
       fft_buf[0] = filter[0] * fft_buf[0];
       fft_buf[1] = filter[1] * fft_buf[1];
 
-      for ( i = 1; i < n; ++i )
+      for ( int i = 1; i < n; ++i )
       {
         sample_t re,im;
         re = filter[i*2  ] * fft_buf[i*2] - filter[i*2+1] * fft_buf[i*2+1];
@@ -79,7 +77,7 @@ Convolver::convolve(void)
 
       fft.invRdft(fft_buf);
 
-      for ( i = 0; i < n; ++i )
+      for ( int i = 0; i < n; ++i )
         buf_ch[i] = fft_buf[i] + delay_ch[i];
 
       memcpy(delay_ch, fft_buf + n, n * sizeof(sample_t));
@@ -89,13 +87,12 @@ Convolver::convolve(void)
 
 bool Convolver::init(Speakers in_spk_, Speakers &out_spk_)
 {
-  int i;
-  int nch = in_spk_.nch();
+  const int nch(in_spk_.getChannelCount());
   out_spk_ = in_spk_;
 
   uninit();
   ver = gen.getVersion();
-  fir = gen.make(in_spk_.sample_rate);
+  fir = gen.make(in_spk_.getSampleRate());
 
   if ( ! fir )
   {
@@ -160,11 +157,15 @@ bool Convolver::init(Speakers in_spk_, Speakers &out_spk_)
   /////////////////////////////////////////////////////////
   // Build the filter
 
-  for ( i = 0; i < fir->length; ++i )
-    filter[i] = fir->data[i] / n;
+  {
+    int i;
 
-  for ( i = i; i < 2 * n; ++i )
-    filter[i] = 0;
+    for ( i = 0; i < fir->length; ++i )
+      filter[i] = fir->data[i] / n;
+
+    for ( ; i < 2 * n; ++i )
+      filter[i] = 0;
+  }
 
   fft.rdft(filter);
 
@@ -215,8 +216,7 @@ bool
 Convolver::processSamples(samples_t in, size_t in_size
     , samples_t &out, size_t &out_size, size_t &gone)
 {
-  int ch;
-  int nch = getInSpk().nch();
+  const int nch(getInSpk().getChannelCount());
 
   if ( firChanged() )
     reinit(false);
@@ -232,7 +232,7 @@ Convolver::processSamples(samples_t in, size_t in_size
     switch ( state )
     {
       case state_zero:
-        for ( ch = 0; ch < nch; ++ch )
+        for ( int ch = 0; ch < nch; ++ch )
         {
           memset(in[ch], 0, in_size * sizeof(sample_t));
         }
@@ -241,7 +241,7 @@ Convolver::processSamples(samples_t in, size_t in_size
       case state_gain:
         gain = fir->data[0];
 
-        for ( ch = 0; ch < nch; ++ch )
+        for ( int ch = 0; ch < nch; ++ch )
         {
           for ( s = 0; s < in_size; ++s )
             in[ch][s] *= gain;
@@ -266,7 +266,7 @@ Convolver::processSamples(samples_t in, size_t in_size
   {
     gone = MIN(in_size, size_t(buf_size - pos));
 
-    for ( ch = 0; ch < nch; ++ch )
+    for ( int ch = 0; ch < nch; ++ch )
     {
       memcpy(buf[ch] + pos, in[ch], sizeof(sample_t) * gone);
     }
@@ -298,7 +298,7 @@ Convolver::flush(samples_t &out, size_t &out_size)
 {
   if ( needFlushing() )
   {
-    for ( int ch = 0; ch < getInSpk().nch(); ++ch )
+    for ( int ch = 0; ch < getInSpk().getChannelCount(); ++ch )
     {
       memset(buf[ch] + pos, 0, (buf_size - pos) * sizeof(sample_t));
     }

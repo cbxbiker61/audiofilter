@@ -34,7 +34,7 @@ void LinearFilter::reset(void)
     // Timing won't work correctly with SRC, because it's
     // hard to track the internal buffer size of the
     // filter in this case.
-    assert(in_spk.sample_rate == out_spk.sample_rate);
+    assert(in_spk.getSampleRate() == out_spk.getSampleRate());
   }
   flushing = FLUSH_NONE;
   resetState();
@@ -54,7 +54,7 @@ bool LinearFilter::isOfdd(void) const
 
 bool LinearFilter::queryInput(Speakers spk) const
 {
-  if ( ! spk.isLinear() || spk.sample_rate == 0 || spk.mask == 0 )
+  if ( ! spk.isLinear() || ! spk.getSampleRate() || ! spk.getMask() )
     return false;
 
   return query(spk);
@@ -74,7 +74,7 @@ bool LinearFilter::setInput(Speakers spk)
   if ( ! init(spk, out_spk) )
     return false;
 
-  assert(in_spk.sample_rate == out_spk.sample_rate);
+  assert(in_spk.getSampleRate() == out_spk.getSampleRate());
   reset();
   return true;
 }
@@ -130,7 +130,7 @@ bool LinearFilter::getChunk(Chunk *chunk)
   if ( out_size )
   {
     chunk->setLinear(out_spk, out_samples, out_size);
-    sync_helper.sendSync(chunk, 1.0 / in_spk.sample_rate);
+    sync_helper.sendSync(chunk, 1.0 / in_spk.getSampleRate());
     sync_helper.drop(out_size);
     out_size = 0;
     return true;
@@ -142,7 +142,7 @@ bool LinearFilter::getChunk(Chunk *chunk)
       return false;
 
     chunk->setLinear(out_spk, out_samples, out_size);
-    sync_helper.sendSync(chunk, 1.0 / in_spk.sample_rate);
+    sync_helper.sendSync(chunk, 1.0 / in_spk.getSampleRate());
     sync_helper.drop(out_size);
     out_size = 0;
     return true;
@@ -168,7 +168,7 @@ bool LinearFilter::getChunk(Chunk *chunk)
       buffered_samples = 0;
 
       assert(old_out_spk == out_spk); // format change is not allowed
-      assert(in_spk.sample_rate == out_spk.sample_rate); // sample rate conversion is not allowed
+      assert(in_spk.getSampleRate() == out_spk.getSampleRate()); // sample rate conversion is not allowed
     }
 
     flushing = FLUSH_NONE;
@@ -254,7 +254,7 @@ bool LinearFilter::reinit(bool format_change)
     buffered_samples = 0;
 
     assert(old_out_spk == out_spk); // format change is not allowed
-    assert(in_spk.sample_rate == out_spk.sample_rate); // sample rate conversion is not allowed
+    assert(in_spk.getSampleRate() == out_spk.getSampleRate()); // sample rate conversion is not allowed
   }
   else if ( format_change )
     flushing |= FLUSH_EOS;

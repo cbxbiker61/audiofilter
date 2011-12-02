@@ -37,15 +37,15 @@ Converter::Converter(size_t _nsamples)
 
 convert_t Converter::findConversion(int _format, Speakers _spk) const
 {
-  if ( _spk.format == _format )
+  if ( _spk.getFormat() == _format )
     // no conversion required but we have to return conversion
     // function to indicate that we can proceed
     return passthrough;
 
   if ( _format == FORMAT_LINEAR )
-    return find_pcm2linear(_spk.format, _spk.nch());
-  else if ( _spk.format == FORMAT_LINEAR )
-    return find_linear2pcm(_format, _spk.nch());
+    return find_pcm2linear(_spk.getFormat(), _spk.getChannelCount());
+  else if ( _spk.isLinear() )
+    return find_linear2pcm(_format, _spk.getChannelCount());
 
   return 0;
 }
@@ -59,9 +59,9 @@ bool Converter::initialize(void)
   // * allocate buffer
   //
   // If we cannot find conversion we have to drop current
-  // input format to spk_unknown to indicate that we cannot
-  // proceed with current setup so forcing application to
-  // call set_input() with new input format.
+  // input format to Speakers::UNKNOWN to indicate that we
+  // cannot proceed with current setup so forcing appli-
+  // cation to call set_input() with new input format.
 
   /////////////////////////////////////////////////////////
   // reset filter state
@@ -78,7 +78,7 @@ bool Converter::initialize(void)
     return true;
   }
 
-  if ( spk.format == format )
+  if ( spk.getFormat() == format )
   {
     // no conversion required
     // no buffer required
@@ -91,17 +91,17 @@ bool Converter::initialize(void)
 
   if ( ! (convert = findConversion(format, spk)) )
   {
-    spk = spk_unknown;
+    spk = Speakers::UNKNOWN;
     return false;
   }
 
   /////////////////////////////////////////////////////////
   // allocate buffer
 
-  if ( ! buf.allocate(spk.nch() * nsamples * getSampleSize(format)) )
+  if ( ! buf.allocate(spk.getChannelCount() * nsamples * getSampleSize(format)) )
   {
     convert = 0;
-    spk = spk_unknown;
+    spk = Speakers::UNKNOWN;
     return false;
   }
 
@@ -110,7 +110,7 @@ bool Converter::initialize(void)
     // set channel pointers
     out_samples[0] = (sample_t *)buf.data();
 
-    for ( int ch = 1; ch < spk.nch(); ++ch )
+    for ( int ch = 1; ch < spk.getChannelCount(); ++ch )
       out_samples[ch] = out_samples[ch-1] + nsamples;
 
     out_rawdata = 0;
@@ -127,7 +127,7 @@ bool Converter::initialize(void)
 
 void Converter::convertPcm2linear(void)
 {
-  const size_t sample_size = spk.getSampleSize() * spk.nch();
+  const size_t sample_size(spk.getSampleSize() * spk.getChannelCount());
 
   samples_t dst = out_samples;
   out_size = 0;
@@ -160,7 +160,7 @@ void Converter::convertPcm2linear(void)
       dst += 1;
       ++out_size;
 
-      if ( isLpcm(spk.format) )
+      if ( spk.isLpcm() )
       {
         dst += 1;
         ++out_size;
@@ -177,7 +177,7 @@ void Converter::convertPcm2linear(void)
 
   size_t n = nsamples - out_size;
 
-  if ( isLpcm(spk.format) )
+  if ( spk.isLpcm() )
     n /= 2;
 
   size_t n_size = n * sample_size;
@@ -196,7 +196,7 @@ void Converter::convertPcm2linear(void)
   dropRawData(n_size);
   out_size += n;
 
-  if ( isLpcm(spk.format) )
+  if ( spk.isLpcm() )
     out_size += n;
 
   /////////////////////////////////////////////////////////
@@ -212,7 +212,7 @@ void Converter::convertPcm2linear(void)
 
 void Converter::convertLinear2pcm(void)
 {
-  const size_t sample_size(AudioFilter::getSampleSize(format) * spk.nch());
+  const size_t sample_size(AudioFilter::getSampleSize(format) * spk.getChannelCount());
   size_t n(MIN(size, nsamples));
 
   convert(out_rawdata, samples, n);
@@ -273,10 +273,10 @@ void Converter::reset(void)
 
 bool Converter::queryInput(Speakers _spk) const
 {
-  if ( (FORMAT_MASK(_spk.format) & converter_formats) == 0 )
+  if ( (FORMAT_MASK(_spk.getFormat()) & converter_formats) == 0 )
     return false;
 
-  if ( _spk.nch() == 0 )
+  if ( _spk.getChannelCount() == 0 )
     return false;
 
   if ( ! findConversion(format, _spk) )
@@ -296,10 +296,10 @@ bool Converter::setInput(Speakers _spk)
 Speakers Converter::getOutput(void) const
 {
   if ( convert == 0 )
-    return spk_unknown;
+    return Speakers::UNKNOWN;
 
   Speakers out = spk;
-  out.format = format;
+  out.setFormat(format);
   return out;
 }
 
@@ -309,7 +309,7 @@ bool Converter::process(const Chunk *_chunk)
   {
     if ( receiveChunk(_chunk) )
     {
-      if ( spk.format == FORMAT_LINEAR )
+      if ( spk.isLinear() )
         samples.reorderFromStd(spk, order);
 
       return true;
@@ -325,7 +325,7 @@ bool Converter::getChunk(Chunk *_chunk)
 {
   const Speakers out_spk = getOutput();
 
-  if ( spk.format == format )
+  if ( spk.getFormat() == format )
   {
     sendChunkInplace(_chunk, size);
     return true;

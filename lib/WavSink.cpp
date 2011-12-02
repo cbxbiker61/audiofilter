@@ -13,7 +13,7 @@ namespace AudioFilter {
 
 WavSink::WavSink()
 {
-  spk = spk_unknown;
+  spk = Speakers::UNKNOWN;
   header_size = 0;
   data_size = 0;
   file_format = (uint8_t*) new WAVEFORMATEXTENSIBLE;
@@ -22,7 +22,7 @@ WavSink::WavSink()
 
 WavSink::WavSink(const char *_filename)
 {
-  spk = spk_unknown;
+  spk = Speakers::UNKNOWN;
   header_size = 0;
   data_size = 0;
   file_format = (uint8_t*) new WAVEFORMATEXTENSIBLE;
@@ -116,7 +116,7 @@ bool WavSink::open(const char *_filename)
 
   if ( f.open(_filename, "wb") )
   {
-    spk = spk_unknown;
+    spk = Speakers::UNKNOWN;
     data_size = 0;
     memset(file_format, 0, sizeof(WAVEFORMATEXTENSIBLE));
     return true;
@@ -132,7 +132,7 @@ void WavSink::close(void)
     closeRiff();
     f.close();
 
-    spk = spk_unknown;
+    spk = Speakers::UNKNOWN;
     header_size = 0;
     data_size = 0;
     memset(file_format, 0, sizeof(WAVEFORMATEXTENSIBLE));
@@ -149,17 +149,20 @@ bool WavSink::isOpen(void) const
 
 bool WavSink::queryInput(Speakers _spk) const
 {
-  WAVEFORMATEXTENSIBLE wfx;
-  bool use_wfx = false;
-
-  if ( _spk.format == FORMAT_LINEAR )
+  if ( _spk.isLinear() )
     return false;
 
-  if ( _spk.format & FORMAT_CLASS_PCM )
+  bool use_wfx(false);
+
+  if ( _spk.isPcm() )
   {
-    if ( _spk.mask != MODE_MONO && _spk.mask != MODE_STEREO )
+    const int mask(_spk.getMask());
+
+    if ( mask != MODE_MONO && mask != MODE_STEREO )
       use_wfx = true;
   }
+
+  WAVEFORMATEXTENSIBLE wfx;
 
   if ( ! spk2wfx(_spk, (WAVEFORMATEX *)&wfx, use_wfx) )
     return false;
@@ -169,19 +172,20 @@ bool WavSink::queryInput(Speakers _spk) const
 
 bool WavSink::setInput(Speakers _spk)
 {
-  // Determine file format
-
-  WAVEFORMATEXTENSIBLE wfx;
-  bool use_wfx = false;
-
-  if ( _spk.format == FORMAT_LINEAR )
+  if ( _spk.isLinear() )
     return false;
 
-  if ( FORMAT_MASK(_spk.format) & FORMAT_CLASS_PCM )
+  bool use_wfx(false);
+
+  if ( _spk.isPcm() )
   {
-    if ( _spk.mask != MODE_MONO && _spk.mask != MODE_STEREO )
+    const int mask(_spk.getMask());
+
+    if ( mask != MODE_MONO && mask != MODE_STEREO )
       use_wfx = true;
   }
+
+  WAVEFORMATEXTENSIBLE wfx;
 
   if ( ! spk2wfx(_spk, (WAVEFORMATEX *)&wfx, use_wfx) )
     return false;

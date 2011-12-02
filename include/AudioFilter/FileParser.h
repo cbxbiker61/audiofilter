@@ -87,9 +87,9 @@ public:
     return stream.isFrameLoaded();
   }
 
-  Speakers getSpk(void) const
+  const Speakers &getSpeakers(void) const
   {
-    return stream.getSpk();
+    return stream.getSpeakers();
   }
 
   uint8_t *getFrame(void) const

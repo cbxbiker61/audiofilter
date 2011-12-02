@@ -58,14 +58,14 @@ bool DtsHdHeaderParser::parseHeader(const uint8_t *hdr, HeaderInfo *hi)
     {
       const int length(((hdr[6] & 0xf) << 11) + (hdr[7] << 3) + ((hdr[8] >> 5) & 7) + 1);
       const int sample_rate(48000); // not sure if the Hd Header has this or not
-      hi->bs_type = BITSTREAM_16BE;
-      hi->spk = Speakers(FORMAT_DTS, MODE_STEREO, sample_rate, 1.0, NO_RELATION);
+      hi->setBsType(BITSTREAM_16BE);
+      hi->setSpeakers(Speakers(FORMAT_DTS, MODE_STEREO, sample_rate, 1.0, NO_RELATION));
       //hi->frame_size = 0;
-      hi->frame_size = length;
-      hi->scan_size = 16384; // always scan up to maximum DTS frame size
+      hi->setFrameSize(length);
+      hi->setScanSize(16384); // always scan up to maximum DTS frame size
       //hi->nsamples = nblks * 32;
-      hi->nsamples = 0; // should be a way to calc this
-      hi->spdif_type = 20; // cannot do SPDIF passthrough yet, currently throw away
+      hi->setSampleCount(0); // should be a way to calc this
+      hi->setSpdifType(20);
     }
 
     return true;

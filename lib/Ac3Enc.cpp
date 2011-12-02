@@ -118,10 +118,11 @@ bool Ac3Enc::set_bitrate(int _bitrate)
 
 bool Ac3Enc::fill_buffer(void)
 {
-  size_t n = AC3_FRAME_SAMPLES - sample;
-  if (size < n)
+  size_t n(AC3_FRAME_SAMPLES - sample);
+
+  if ( size < n )
   {
-    for (int ch = 0; ch < spk.nch(); ch++)
+    for (int ch = 0; ch < spk.getChannelCount(); ++ch )
       memcpy(frame_samples[ch] + sample, samples[ch], size * sizeof(sample_t));
 
     sample += size;
@@ -132,7 +133,7 @@ bool Ac3Enc::fill_buffer(void)
   }
   else
   {
-    for (int ch = 0; ch < spk.nch(); ch++)
+    for ( int ch = 0; ch < spk.getChannelCount(); ++ch )
       memcpy(frame_samples[ch] + sample, samples[ch], n * sizeof(sample_t));
 
     sample = 0;
@@ -148,7 +149,8 @@ void Ac3Enc::reset(void)
   sample = 0;
 
   memset(delay, 0, sizeof(delay));
-  for (int ch = 0; ch < NCHANNELS; ch++)
+
+  for ( int ch = 0; ch < NCHANNELS; ++ch )
     delay_exp[ch] = 15; // indicate that we have 0 bits in delay array
 
   // reset bit allocation
@@ -195,7 +197,7 @@ bool Ac3Enc::query_input(Speakers _spk) const
   return true;
 }
 
-bool Ac3Enc::set_input(Speakers _spk)
+bool Ac3Enc::setInput(Speakers _spk)
 {
   if (!NullFilter::set_input(_spk))
     return false;
@@ -237,9 +239,9 @@ bool Ac3Enc::set_input(Speakers _spk)
     case MODE_3_2: case MODE_3_2 | CH_MASK_LFE: acmod = AC3_MODE_3_2; break;
     default: return false;
   }
-  lfe     = spk.lfe();
+  lfe     = spk.hasLfe();
   dolby   = (spk.mask == MODE_STEREO) && ((spk.relation == RELATION_DOLBY) || (spk.relation == RELATION_DOLBY2));
-  nfchans = spk.lfe()? spk.nch() - 1: spk.nch();
+  nfchans = spk.hasLfe()? spk.getChannelCount() - 1: spk.getChannelCount();
 
   // scale window
   sample_t factor = 32768.0 / spk.level;
@@ -291,18 +293,15 @@ Speakers Ac3Enc::get_output(void) const
   return Speakers(FORMAT_AC3, spk.mask, spk.sample_rate, 1.0, spk.relation);
 }
 
-int Ac3Enc::encode_frame(void)
+int Ac3Enc::encodeFrame(void)
 {
-  // todo: support non-standart channel ordering given with spk
+  // todo: support non-standard channel ordering given with spk
   // todo: support for 24/32/float input sample formats
   // todo: support coupling (basic encoder)
 
-  int ch, b, s; // channel, block, sample indexes
-  int endmant;
-  int nch = spk.nch();
+  const int maxCh(spk.getChannelCount());
 
   // frame-wide data
-
 
   // channel-wide data
   int exp_norm[AC3_NBLOCKS]; // normalization
@@ -310,9 +309,11 @@ int Ac3Enc::encode_frame(void)
   // block-wide data
   int16_t mdct_buf[AC3_BLOCK_SAMPLES * 2];
 
-  for (ch = 0; ch < nch; ch++)
+  for ( int ch = 0; ch < maxCh; ++ch )
   {
-    if (spk.lfe() && (ch == nfchans))
+    int endmant;
+
+    if ( spk.hasLfe() && (ch == nfchans) )
       // lfe channel
       endmant = 7;
     else
@@ -321,13 +322,14 @@ int Ac3Enc::encode_frame(void)
       chbwcod[ch] = 50;
       endmant = ((chbwcod[ch] + 12) * 3) + 37;
     }
+
     nmant[ch] = endmant;
 
     /////////////////////////////////////////////////////////////////
     // Compute exponents and mdct coeffitients
     // for all blocks from input data
     //
-    for (b = 0; b < AC3_NBLOCKS; b++)
+    for ( int b = 0; b < AC3_NBLOCKS; ++b )
     {
       // todo: silence threshold at absolute level of 128
       int exp_norm1 = 0;  // normalization for this block
@@ -349,7 +351,7 @@ int Ac3Enc::encode_frame(void)
       //   delay normalization computed at previous block)
       //   and delay
       // optimize: unroll cycle
-      for (s = 0; s < AC3_BLOCK_SAMPLES; s++)
+      for ( int s = 0; s < AC3_BLOCK_SAMPLES; ++s )
       {
         v = *sptr++;
         mdct_buf[s + 256] = int32_t(v * window[0][AC3_BLOCK_SAMPLES - s - 1]);
@@ -368,7 +370,7 @@ int Ac3Enc::encode_frame(void)
       delay_exp[ch] = exp_norm2;
 
       // normalize
-      for (s = 0; s < AC3_BLOCK_SAMPLES * 2; s++)
+      for ( int s = 0; s < AC3_BLOCK_SAMPLES * 2; ++s )
         mdct_buf[s] <<= exp_norm1;
 
       // finished with input
@@ -385,9 +387,10 @@ int Ac3Enc::encode_frame(void)
       // compute exponents
       // normalize mdct coeffitients
       // we take into account the normalization
-      for (s = 0; s < AC3_BLOCK_SAMPLES; s++)
+      for ( int s = 0; s < AC3_BLOCK_SAMPLES; ++s )
       {
         exp_norm2 = 15 - bits_left(abs(mant[ch][b][s]));
+
         if (exp_norm2 == 15)
           exp[ch][b][s] = 24;
         else
@@ -412,10 +415,12 @@ int Ac3Enc::encode_frame(void)
 
     // normalize mdct coefs
     int b1;
-    for (b = 0; b < AC3_NBLOCKS; b++)
+    for ( int b = 0; b < AC3_NBLOCKS; ++b )
     {
-      if (expstr[ch][b] != EXP_REUSE)  b1 = b;
-      for (s = 0; s < endmant; s++)
+      if ( expstr[ch][b] != EXP_REUSE )
+        b1 = b;
+
+      for ( int s = 0; s < endmant; ++s )
         // note: it is possible that exp[ch][b1][s] < exp_norm[b]
         //       exponent may be decreased because of differential
         //       restricttions
@@ -457,26 +462,33 @@ int Ac3Enc::encode_frame(void)
     bits_left += 4;                         // rematflg[]
   }
 
-  for (ch = 0; ch < nfchans; ch++)
-    for (b = 0; b < AC3_NBLOCKS; b++)
-      if (expstr[ch][b] != EXP_REUSE)
+  for ( int ch = 0; ch < nfchans; ++ch )
+  {
+    for ( int b = 0; b < AC3_NBLOCKS; ++b )
+    }
+      if ( expstr[ch][b] != EXP_REUSE )
       {
         bits_left += 12;                    // chbwcod, exps[0], gainrng
         bits_left += 7 * (ngrps[ch][b]);    // exps
       }
+    }
+  }
 
-  if (lfe)
+  if ( lfe )
   {
-    bits_left += 13;                       // lfeexpstr, lfesnroffst, lfegaincod
-    for (b = 0; b < AC3_NBLOCKS; b++)
-      if (expstr[nfchans] != EXP_REUSE)
+    bits_left += 13; // lfeexpstr, lfesnroffst, lfegaincod
+
+    for ( int b = 0; b < AC3_NBLOCKS; ++b )
+    {
+      if ( expstr[nfchans] != EXP_REUSE )
       {
         bits_left += 4;                    // lfeexps[0]
         bits_left += 7 * ngrps[nfchans][b];// lfeexps
       }
+    }
   }
 
-  bits_left += 16;                         // CRC
+  bits_left += 16; // CRC
   bits_left = frame_size * 8 - bits_left;
 
   // Finished with bits left
@@ -503,9 +515,11 @@ int Ac3Enc::encode_frame(void)
   ba_bits = 0;
   ba_block = 0;
 
-  for (ch = 0; ch < nch; ch++)
-    for (b = 0; b < AC3_NBLOCKS; b++)
-      if (expstr[ch][b] != EXP_REUSE)
+  for ( int ch = 0; ch < nch; ++ch )
+  {
+    for ( int b = 0; b < AC3_NBLOCKS; ++b )
+    {
+      if ( expstr[ch][b] != EXP_REUSE )
       {
         bit_alloc(
           bap[ch][b], exp[ch][b],
@@ -527,9 +541,11 @@ int Ac3Enc::encode_frame(void)
         memcpy(bap[ch][b], bap[ch][ba_block], sizeof(bap[0][0][0]) * nmant[ch]);
         ba_bits += block_bits.bits;
       }
+    }
+  }
 
   // bisection init
-  if (ba_bits > bits_left)
+  if ( ba_bits > bits_left )
   {
     high = snroffset;
     low = snroffset_min;
@@ -541,14 +557,17 @@ int Ac3Enc::encode_frame(void)
   }
 
   // bisection steps
-  while (high - low > 4)
+  while ( high - low > 4 )
   {
     snroffset = ((high + low) >> 1) & ~3;
 
     ba_bits = 0;
-    for (ch = 0; ch < nch; ch++)
-      for (b = 0; b < AC3_NBLOCKS; b++)
-        if (expstr[ch][b] != EXP_REUSE)
+
+    for ( int ch = 0; ch < nch; ++ch )
+    {
+      for ( int b = 0; b < AC3_NBLOCKS; ++b )
+      {
+        if ( expstr[ch][b] != EXP_REUSE )
         {
           bit_alloc(
             bap[ch][b], exp[ch][b],
@@ -570,8 +589,10 @@ int Ac3Enc::encode_frame(void)
           memcpy(bap[ch][b], bap[ch][ba_block], sizeof(bap[0][0][0]) * nmant[ch]);
           ba_bits += block_bits.bits;
         }
+      }
+    }
 
-    if (ba_bits > bits_left)
+    if ( ba_bits > bits_left )
       high = snroffset;
     else
       low = snroffset;
@@ -580,9 +601,12 @@ int Ac3Enc::encode_frame(void)
   // do bit allocation
   snroffset = low & ~3; // clear 2 last bits
   ba_bits = 0;
-  for (ch = 0; ch < nch; ch++)
-    for (b = 0; b < AC3_NBLOCKS; b++)
-      if (expstr[ch][b] != EXP_REUSE)
+
+  for ( int ch = 0; ch < nch; ++ch )
+  {
+    for ( int b = 0; b < AC3_NBLOCKS; ++b )
+    {
+      if ( expstr[ch][b] != EXP_REUSE )
       {
         bit_alloc(
           bap[ch][b], exp[ch][b],
@@ -604,8 +628,10 @@ int Ac3Enc::encode_frame(void)
         memcpy(bap[ch][b], bap[ch][ba_block], sizeof(bap[0][0][0]) * nmant[ch]);
         ba_bits += block_bits.bits;
       }
+    }
+  }
 
-  if (ba_bits > bits_left)
+  if ( ba_bits > bits_left )
     // some error happen!!!
     return 0;
 
@@ -637,17 +663,19 @@ int Ac3Enc::encode_frame(void)
   bs.put(3, 0);      // 'bsmod' = complete main audio service
   bs.put(3, acmod);
 
-  if (acmod & 1 && acmod != 1)
+  if ( acmod & 1 && acmod != 1 )
     bs.put(2, 0);    // 'cmixlev' = -3dB
 
-  if (acmod & 4)
+  if ( acmod & 4 )
     bs.put(2, 0);    // 'surmixlev' = -3dB
 
-  if (acmod == 2)
-    if (spk.relation)
+  if ( acmod == 2 )
+  {
+    if ( spk.relation )
       bs.put(2, 2);  // 'dsurmod' = Dolby surround encoded
     else
       bs.put(2, 0);  // 'dsurmod' = surround not indicated
+  }
 
   bs.put_bool(spk.lfe()); // 'lfeon'
   bs.put(5, 31);     // 'dialnorm' = -31dB
@@ -664,17 +692,17 @@ int Ac3Enc::encode_frame(void)
   ///////////////////////////////////////////////////////////////////
   // Audio blocks
 
-  for (b = 0; b < AC3_NBLOCKS; b++)
+  for ( int b = 0; b < AC3_NBLOCKS; ++b )
   {
-    for (ch = 0; ch < nfchans; ch++)
+    for ( int ch = 0; ch < nfchans; ++ch )
       bs.put_bool(false);              // 'blksw[ch]' - 512-tap mdct
 
-    for (ch = 0; ch < nfchans; ch++)
+    for ( int ch = 0; ch < nfchans; ++ch )
       bs.put_bool(true);               // 'dithflag[ch]' - use dithering
 
     bs.put_bool(false);                // 'dynrnge'
 
-    if (b == 0)
+    if ( b == 0 )
     {
       bs.put_bool(true);               // 'cplstre'
       bs.put_bool(false);              // 'cplinu'
@@ -682,8 +710,9 @@ int Ac3Enc::encode_frame(void)
     else
       bs.put_bool(false);              // 'cplstre'
 
-    if (acmod == AC3_MODE_STEREO)
-      if (b == 0)
+    if ( acmod == AC3_MODE_STEREO )
+    {
+      if ( b == 0 )
       {
         bs.put_bool(true);             // 'rematstr'
         bs.put_bool(false);            // 'rematflg[0]'
@@ -693,38 +722,44 @@ int Ac3Enc::encode_frame(void)
       }
       else
         bs.put_bool(false);            // 'rematstr'
+    }
 
-    for (ch = 0; ch < nfchans; ch++)
+    for ( int ch = 0; ch < nfchans; ++ch )
       bs.put(2, expstr[ch][b]);   // 'chexpstr'
 
-    if (lfe)
+    if ( lfe )
       bs.put(1, expstr[nfchans][b]); // 'lfeexpstr'
 
-    for (ch = 0; ch < nfchans; ch++)
+    for ( int ch = 0; ch < nfchans; ++ch )
+    {
       if (expstr[ch][b] != EXP_REUSE)
         bs.put(6, chbwcod[ch]);   // 'chbwcod'
+    }
 
     // exponents
 
-    for (ch = 0; ch < nfchans; ch++)
-      if (expstr[ch][b] != EXP_REUSE)
+    for ( int ch = 0; ch < nfchans; ++ch )
+    {
+      if ( expstr[ch][b] != EXP_REUSE )
       {
         bs.put(4, expcod[ch][b][0]);   // 'exps[ch][0]'
         for (s = 1; s < ngrps[ch][b]+1; s++)// note: include the last group!
           bs.put(7, expcod[ch][b][s]); // 'exps[ch][grp]'
         bs.put(2, 0);                  // 'gainrng[ch]'
       }
+    }
 
-    if (lfe && expstr[nfchans][b] != EXP_REUSE)
+    if ( lfe && expstr[nfchans][b] != EXP_REUSE )
     {
       bs.put(4, expcod[nfchans][b][0]);    // 'lfeexp[0]'
-      for (s = 1; s < ngrps[nfchans][b]+1; s++) // note: include the last group!
+
+      for ( int s = 1; s < ngrps[nfchans][b]+1; ++s ) // note: include the last group!
         bs.put(7, expcod[nfchans][b][s]);  // 'lfeexp[grp]'
     }
 
     // bit allocation
 
-    if (b == 0)
+    if ( b == 0 )
     {
       bs.put_bool(true);               // 'baie'
       bs.put(2, sdcycod);         // 'sdcycod'
@@ -735,7 +770,8 @@ int Ac3Enc::encode_frame(void)
 
       bs.put_bool(true);               // 'snroffste'
       bs.put(6, csnroffst);       // 'csnroffst'
-      for (ch = 0; ch < nch; ch++)
+
+      for ( int ch = 0; ch < nch; ++ch )
       {
         bs.put(4, fsnroffst);     // 'fsnroffst[ch]'/'lfesnroffst'
         bs.put(3, fgaincod);      // 'fgaincod[ch]'/'lfegaincod'
@@ -767,8 +803,8 @@ int Ac3Enc::encode_frame(void)
     int qs4 = 0; int qch4 = 0;
     int v;
 
-    for (ch = 0; ch < nch; ch++)
-      for (s = 0; s < nmant[ch]; s++)
+    for ( int ch = 0; ch < nch; ++ch )
+      for ( int s = 0; s < nmant[ch]; ++s )
         #define GROUP_NEXT(q, value, levels, mul)                        \
           while (qch##q < nch)                                           \
           {                                                              \

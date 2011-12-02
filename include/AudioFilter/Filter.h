@@ -160,7 +160,7 @@ public:
   // Utilities
 
   Chunk():
-    spk(spk_unknown),
+    spk(Speakers::UNKNOWN),
     rawdata(0),
     size(0),
     sync(false),
@@ -194,7 +194,7 @@ public:
 
   inline void setDummy(void)
   {
-    spk = spk_unknown;
+    spk = Speakers::UNKNOWN;
     rawdata = 0;
     samples.zero();
     size = 0;
@@ -219,7 +219,7 @@ public:
                         , bool _sync = false, vtime_t _time = 0, bool _eos  = false)
   {
     // channel samples must be used only with linear format
-    assert(_spk.format == FORMAT_LINEAR);
+    assert( _spk.isLinear() );
 
     spk = _spk;
     rawdata = 0;
@@ -234,7 +234,7 @@ public:
     bool _sync = false, vtime_t _time = 0, bool _eos  = false)
   {
     // cannot use raw data with linear format
-    assert(_spk.format != FORMAT_LINEAR);
+    assert( _spk.isRawData() );
 
     spk = _spk;
     rawdata = _rawdata;
@@ -249,7 +249,7 @@ public:
     bool _sync = false, vtime_t _time = 0, bool _eos  = false)
   {
     // cannot use raw data with linear format
-    assert((_spk.format != FORMAT_LINEAR) || (_rawdata == 0));
+    assert(( _spk.isRawData() ) || (_rawdata == 0));
 
     spk = _spk;
     rawdata = _rawdata;
@@ -273,7 +273,7 @@ public:
 
   inline bool isDummy(void) const
   {
-    return spk.format == FORMAT_UNKNOWN;
+    return spk.isUnknown();
   }
 
   inline bool isEmpty(void) const
@@ -286,7 +286,7 @@ public:
     if ( _size > size )
       _size = size;
 
-    if ( spk.format == FORMAT_LINEAR )
+    if ( spk.isLinear() )
       samples += _size;
     else
       rawdata += _size;
@@ -572,7 +572,7 @@ class NullFilter : public Filter
 public:
   NullFilter(int _format_mask)
   {
-    spk  = spk_unknown;
+    spk  = Speakers::UNKNOWN;
     size = 0;
     time = 0;
     sync = false;
@@ -597,10 +597,10 @@ public:
   virtual bool queryInput(Speakers _spk) const
   {
     // channel mask and sample rate must be defined for linear format
-    if (_spk.format == FORMAT_LINEAR)
-      return (FORMAT_MASK_LINEAR & format_mask) != 0 && _spk.mask != 0 && _spk.sample_rate != 0;
+    if ( _spk.isLinear() )
+      return (FORMAT_MASK_LINEAR & format_mask) != 0 && _spk.getMask() != 0 && _spk.getSampleRate() != 0;
     else
-      return (FORMAT_MASK(_spk.format) & format_mask) != 0;
+      return (FORMAT_MASK(_spk.getFormat()) & format_mask) != 0;
   }
 
   virtual bool setInput(Speakers _spk)
@@ -707,7 +707,7 @@ protected:
     _chunk->set ( getOutput(), rawdata, samples, _size
                   , sync, time, flushing && (size == _size));
 
-    if ( spk.format == FORMAT_LINEAR )
+    if ( spk.isLinear() )
       samples += _size;
     else
       rawdata += _size;
@@ -792,7 +792,7 @@ public:
     else if ( source )
       return source->getOutput();
 
-    return spk_unknown;
+    return Speakers::UNKNOWN;
   }
 
   bool isEmpty(void) const
@@ -898,7 +898,7 @@ public:
     else if ( sink )
       return sink->getInput();
 
-    return spk_unknown;
+    return Speakers::UNKNOWN;
   }
 
   bool process(const Chunk *chunk)

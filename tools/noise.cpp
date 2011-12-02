@@ -124,10 +124,10 @@ int run(int argc, char **argv)
 #endif
 #endif
   Sink *sink(0);
-  int imask = 2;
-  int iformat = 0;
-  int sample_rate = 48000;
-  int seed = 0;
+  int imask(2);
+  int iformat(0);
+  int sample_rate(48000);
+  int seed(0);
 
   /////////////////////////////////////////////////////////
   // Parse arguments
@@ -281,7 +281,7 @@ int run(int argc, char **argv)
 
   std::cout << "Opening " << spk.getFormatText()
           << " " << spk.getModeText()
-          << " " << spk.sample_rate << "Hz audio output..."
+          << " " << spk.getSampleRate() << " Hz audio output..."
           << std::endl;
 
   if ( ! sink->setInput(spk) )
@@ -293,7 +293,7 @@ int run(int argc, char **argv)
   // Process
   /////////////////////////////////////////////////////////
 
-  double size = double(spk.getSampleSize() * spk.nch() * spk.sample_rate) * double(ms) / 1000;
+  double size = double(spk.getSampleSize() * spk.getChannelCount() * spk.getSampleRate()) * double(ms) / 1000;
   NoiseGen noise(spk, seed, (uint64_t) size);
   Chunk chunk;
 

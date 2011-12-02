@@ -119,40 +119,42 @@ bool MpaHeaderParser::parseHeader(const uint8_t *hdr, HeaderInfo *hinfo)
   int bitrate = bitrate_tbl[ver][layer][h.bitrate_index] * 1000;
   int sample_rate = freq_tbl[ver][h.sampling_frequency];
 
-  hinfo->spk = Speakers(FORMAT_MPA, (h.mode == 3)? MODE_MONO: MODE_STEREO, sample_rate);
+  hinfo->setSpeakers(Speakers(FORMAT_MPA, (h.mode == 3)? MODE_MONO: MODE_STEREO, sample_rate));
 
   if ( bitrate )
   {
-    hinfo->frame_size = bitrate * slots_tbl[layer] / sample_rate + h.padding;
-    hinfo->scan_size = 0; // do not scan
+    hinfo->setFrameSize(bitrate * slots_tbl[layer] / sample_rate + h.padding);
+    hinfo->setScanSize(0); // do not scan
   }
   else
   {
-    hinfo->frame_size = 0;
-    hinfo->scan_size = 1728; // scan up to max frame size
+    hinfo->setFrameSize(0);
+    hinfo->setScanSize(1728); // scan up to max frame size
   }
 
   if ( layer == 0 ) // MPA_LAYER_I
-    hinfo->frame_size *= 4;
+  {
+    hinfo->setFrameSize(hinfo->getFrameSize() * 4);
+  }
 
-  hinfo->nsamples = layer == 0? 384: 1152;
-  hinfo->bs_type = bs_type;
+  hinfo->setSampleCount( (layer == 0) ? 384 : 1152);
+  hinfo->setBsType(bs_type);
 
   if ( ver )
   {
     // MPEG2 LSF
     if (layer == 0)
-      hinfo->spdif_type = 0x0008; // Pc burst-info (data type = MPEG2 Layer I LSF)
+      hinfo->setSpdifType(0x0008); // Pc burst-info (data type = MPEG2 Layer I LSF)
     else
-      hinfo->spdif_type = 0x0009; // Pc burst-info (data type = MPEG2 Layer II/III LSF)
+      hinfo->setSpdifType(0x0009); // Pc burst-info (data type = MPEG2 Layer II/III LSF)
   }
   else
   {
     // MPEG1
     if ( layer == 0 )
-      hinfo->spdif_type = 0x0004; // Pc burst-info (data type = MPEG1 Layer I)
+      hinfo->setSpdifType(0x0004); // Pc burst-info (data type = MPEG1 Layer I)
     else
-      hinfo->spdif_type = 0x0005; // Pc burst-info (data type = MPEG1/2 Layer II/III)
+      hinfo->setSpdifType(0x0005); // Pc burst-info (data type = MPEG1/2 Layer II/III)
   }
 
   return true;

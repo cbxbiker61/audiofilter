@@ -100,10 +100,7 @@ void ConvolverMch::releaseAllFirs(void)
 
 void ConvolverMch::processTrivial(samples_t samples, size_t size)
 {
-  size_t s;
-  sample_t gain;
-
-  for ( int ch = 0; ch < getInSpk().nch(); ++ch )
+  for ( int ch = 0; ch < getInSpk().getChannelCount(); ++ch )
   {
     switch ( type[ch] )
     {
@@ -112,10 +109,14 @@ void ConvolverMch::processTrivial(samples_t samples, size_t size)
         break;
 
       case type_gain:
-        gain = fir[ch]->data[0];
-        for ( s = 0; s < size; ++s )
-          samples[ch][s] *= gain;
-        break;
+        {
+          sample_t gain = fir[ch]->data[0];
+
+          for ( size_t s = 0; s < size; ++s )
+            samples[ch][s] *= gain;
+
+          break;
+        }
 
       default:
         break;
@@ -125,19 +126,17 @@ void ConvolverMch::processTrivial(samples_t samples, size_t size)
 
 void ConvolverMch::processConvolve(void)
 {
-  int ch, i;
-  int nch = getInSpk().nch();
-  sample_t *buf_ch, *filter_ch, *delay_ch;
+  const int nch(getInSpk().getChannelCount());
 
-  for ( ch = 0; ch < nch; ++ch )
+  for ( int ch = 0; ch < nch; ++ch )
   {
     if ( type[ch] == type_conv )
     {
       for ( int fft_pos = 0; fft_pos < buf_size; fft_pos += n )
       {
-        buf_ch = buf[ch] + fft_pos;
-        delay_ch = buf[ch] + buf_size;
-        filter_ch = filter[ch];
+        sample_t *buf_ch = buf[ch] + fft_pos;
+        sample_t *delay_ch = buf[ch] + buf_size;
+        sample_t *filter_ch = filter[ch];
 
         memcpy(fft_buf, buf_ch, n * sizeof(sample_t));
         memset(fft_buf + n, 0, n * sizeof(sample_t));
@@ -145,20 +144,19 @@ void ConvolverMch::processConvolve(void)
         fft.rdft(fft_buf);
 
         fft_buf[0] = filter_ch[0] * fft_buf[0];
-        fft_buf[1] = filter_ch[1] * fft_buf[1]; 
+        fft_buf[1] = filter_ch[1] * fft_buf[1];
 
-        for ( i = 1; i < n; ++i )
+        for ( int i = 1; i < n; ++i )
         {
-          sample_t re,im;
-          re = filter_ch[i*2  ] * fft_buf[i*2] - filter_ch[i*2+1] * fft_buf[i*2+1];
-          im = filter_ch[i*2+1] * fft_buf[i*2] + filter_ch[i*2  ] * fft_buf[i*2+1];
+          sample_t re = filter_ch[i*2  ] * fft_buf[i*2] - filter_ch[i*2+1] * fft_buf[i*2+1];
+          sample_t im = filter_ch[i*2+1] * fft_buf[i*2] + filter_ch[i*2  ] * fft_buf[i*2+1];
           fft_buf[i*2  ] = re;
           fft_buf[i*2+1] = im;
         }
 
         fft.invRdft(fft_buf);
 
-        for ( i = 0; i < n; ++i )
+        for ( int i = 0; i < n; ++i )
           buf_ch[i] = fft_buf[i] + delay_ch[i];
 
         memcpy(delay_ch, fft_buf + n, n * sizeof(sample_t));
@@ -169,21 +167,20 @@ void ConvolverMch::processConvolve(void)
 
 bool ConvolverMch::init(Speakers new_in_spk, Speakers &new_out_spk)
 {
-  int i, ch, ch_name;
-  int nch = new_in_spk.nch();
+  const int nch(new_in_spk.getChannelCount());
 
   trivial = true;
   int min_point = 0;
   int max_point = 0;
 
   // Update versions
-  for ( ch_name = 0; ch_name < NCHANNELS; ++ch_name )
+  for ( int ch_name = 0; ch_name < NCHANNELS; ++ch_name )
     ver[ch_name] = gen[ch_name].getVersion();
 
-  for ( ch = 0; ch < nch; ++ch )
+  for ( int ch = 0; ch < nch; ++ch )
   {
-    ch_name = getInSpk().order()[ch];
-    fir[ch] = gen[ch_name].make(new_in_spk.sample_rate);
+    int ch_name = getInSpk().order()[ch];
+    fir[ch] = gen[ch_name].make(new_in_spk.getSampleRate());
 
     // fir generation error
     if ( ! fir[ch] )
@@ -255,11 +252,11 @@ bool ConvolverMch::init(Speakers new_in_spk, Speakers &new_out_spk)
   // Build filters
 
   filter.zero();
-  for ( ch = 0; ch < nch; ++ch )
+  for ( int ch = 0; ch < nch; ++ch )
   {
     if ( type[ch] == type_conv )
     {
-      for ( i = 0; i < fir[ch]->length; ++i )
+      for ( int i = 0; i < fir[ch]->length; ++i )
         filter[ch][i + c - fir[ch]->center] = fir[ch]->data[i] / n;
       fft.rdft(filter[ch]);
     }
@@ -284,7 +281,7 @@ void ConvolverMch::uninit(void)
 
   trivial = true;
 
-  for ( int ch = 0; ch < getInSpk().nch(); ++ch )
+  for ( int ch = 0; ch < getInSpk().getChannelCount(); ++ch )
   {
     delete fir[ch];
     fir[ch] = 0;
@@ -306,8 +303,7 @@ void ConvolverMch::resetState(void)
 bool ConvolverMch::processSamples(samples_t in, size_t in_size
   , samples_t &out, size_t &out_size, size_t &gone)
 {
-  int ch;
-  int nch = getInSpk().nch();
+  const int nch(getInSpk().getChannelCount());
 
   /////////////////////////////////////////////////////////
   // Handle FIR change
@@ -334,20 +330,28 @@ bool ConvolverMch::processSamples(samples_t in, size_t in_size
   // Trivial cases:
   // Copy delayed samples to the start of the buffer
   if ( pos == 0 )
-    for ( ch = 0; ch < nch; ++ch )
+  {
+    for ( int ch = 0; ch < nch; ++ch )
+    {
       if ( type[ch] != type_conv )
         memcpy(buf[ch], buf[ch] + buf_size, c * sizeof(sample_t));
+    }
+  }
 
   // Accumulate the buffer
   if ( pos < buf_size )
   {
     gone = MIN(in_size, size_t(buf_size - pos));
-    for ( ch = 0; ch < nch; ++ch )
+
+    for ( int ch = 0; ch < nch; ++ch )
+    {
       if ( type[ch] == type_conv )
         memcpy(buf[ch] + pos, in[ch], gone * sizeof(sample_t));
       else
         // Trivial cases are shifted
         memcpy(buf[ch] + c + pos, in[ch], gone * sizeof(sample_t));
+    }
+
     pos += (int)gone;
 
     if ( pos < buf_size )
@@ -376,18 +380,20 @@ bool ConvolverMch::flush(samples_t &out, size_t &out_size)
   if ( !needFlushing() )
     return true;
 
-  int nch = getInSpk().nch();
+  const int nch(getInSpk().getChannelCount());
 
   if ( pos == 0 )
   {
     for ( int ch = 0; ch < nch; ++ch )
-      if (type[ch] != type_conv)
+      if ( type[ch] != type_conv )
         memcpy(buf[ch], buf[ch] + buf_size, c * sizeof(sample_t));
   }
 
   for ( int ch = 0; ch < nch; ++ch )
-    if (type[ch] == type_conv)
+  {
+    if ( type[ch] == type_conv )
       memset(buf[ch] + pos, 0, (buf_size - pos) * sizeof(sample_t));
+  }
 
   processTrivial(buf, buf_size);
   processConvolve();
@@ -403,6 +409,7 @@ bool ConvolverMch::flush(samples_t &out, size_t &out_size)
     out_size -= pre_samples;
     pre_samples = 0;
   }
+
   return true;
 }
 

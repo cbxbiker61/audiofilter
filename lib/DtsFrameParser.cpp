@@ -128,7 +128,7 @@ const HeaderParser *DtsFrameParser::getHeaderParser(void) const
 
 void DtsFrameParser::reset(void)
 {
-  _spk = spk_unknown;
+  _spk = Speakers::UNKNOWN;
   _frameSize = 0;
   _nSamples = 0;
 
@@ -153,14 +153,14 @@ bool DtsFrameParser::parseFrame(uint8_t *frame, size_t size)
   if ( ! _dtsHeaderParser.parseHeader(frame, &hi) )
     return false;
 
-  if ( hi.frame_size > size )
+  if ( hi.getFrameSize() > size )
     return false;
 
-  _spk = hi.spk;
-  _spk.format = FORMAT_LINEAR;
-  _frameSize = hi.frame_size;
-  _nSamples = hi.nsamples;
-  _bs_type = hi.bs_type;
+  _spk = hi.getSpeakers();
+  _spk.setLinear();
+  _frameSize = hi.getFrameSize();
+  _nSamples = hi.getSampleCount();
+  _bs_type = hi.getBsType();
 
   /////////////////////////////////////////////////////////
   // Convert the bitstream type
@@ -262,7 +262,7 @@ std::string DtsFrameParser::getStreamInfo(void) const
     "amode: %i\n"
     "%s",
     _spk.getModeText(),
-    _spk.sample_rate,
+    _spk.getSampleRate(),
     dts_bit_rates[bit_rate] / 1000,
     stream,
     _frameSize,

@@ -90,7 +90,7 @@ bool DtsHeaderParser::parseHeader(const uint8_t *hdr, HeaderInfo *hinfo)
         && hdr[2] == 0xe8
         && hdr[3] == 0x00
         && hdr[4] == 0x07
-        && (hdr[5] & 0xf0) == 0xf0)
+        && ((hdr[5] & 0xf0) == 0xf0))
   {
     bs_type = BITSTREAM_14BE;
     nblks = ((be2uint16(hdr16[2]) << 4)  & 0x70)
@@ -105,7 +105,7 @@ bool DtsHeaderParser::parseHeader(const uint8_t *hdr, HeaderInfo *hinfo)
         && hdr[1] == 0x1f
         && hdr[2] == 0x00
         && hdr[3] == 0xe8
-        && (hdr[4] & 0xf0) == 0xf0
+        && ((hdr[4] & 0xf0) == 0xf0)
         && hdr[5] == 0x07)
   {
     bs_type = BITSTREAM_14LE;
@@ -134,7 +134,7 @@ bool DtsHeaderParser::parseHeader(const uint8_t *hdr, HeaderInfo *hinfo)
 
   if ( hinfo )
   {
-    const int sample_rate(dts_sample_rates[sfreq]);
+    int sample_rate(dts_sample_rates[sfreq]);
     int mask(amode2mask_tbl[amode]);
     const int relation(amode2rel_tbl[amode]);
 
@@ -143,26 +143,34 @@ bool DtsHeaderParser::parseHeader(const uint8_t *hdr, HeaderInfo *hinfo)
       mask |= CH_MASK_LFE;
     }
 
-    hinfo->spk = Speakers(FORMAT_DTS, mask, sample_rate * (hdLen ? 4 : 1), 1.0, relation);
-    hinfo->frame_size = fSiz + hdLen;
-    hinfo->hd_size = hdLen;
-    hinfo->scan_size = 16384; // always scan up to maximum DTS frame size
-    hinfo->nsamples = nblks * 32;
-    hinfo->bs_type = bs_type;
+#if 0
+    if ( hdLen )
+    {
+      sample_rate *= 4;
+      mask = MODE_7_1;
+    }
+#endif
 
-    switch ( hinfo->nsamples )
+    hinfo->setSpeakers(Speakers(FORMAT_DTS, mask, sample_rate, 1.0, relation));
+    hinfo->setFrameSize(fSiz + hdLen);
+    hinfo->setDtsHdSize(hdLen);
+    hinfo->setScanSize(16384); // always scan up to maximum DTS frame size
+    hinfo->setSampleCount(nblks * 32);
+    hinfo->setBsType(bs_type);
+
+    switch ( hinfo->getSampleCount() )
     {
       case 512:
-        hinfo->spdif_type = 11;
+        hinfo->setSpdifType(11);
         break;
       case 1024:
-        hinfo->spdif_type = 12;
+        hinfo->setSpdifType(12);
         break;
       case 2048:
-        hinfo->spdif_type = 13;
+        hinfo->setSpdifType(13);
         break;
       default:
-        hinfo->spdif_type = 0; // cannot do SPDIF passthrough
+        hinfo->setSpdifType(0); // cannot do SPDIF passthrough
         break;
     }
   }

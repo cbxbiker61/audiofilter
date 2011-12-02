@@ -98,7 +98,7 @@ bool SpdifFrameParser::parseFrame(uint8_t *frame, size_t size)
 
     if ( _isBigEndian )
     {
-      _hi.bs_type = toBigEndian(_hi.bs_type);
+      _hi.setBsType(toBigEndian(_hi.getBsType()));
       bs_conv_swab16(_data.ptr, _data.size, _data.ptr);
     }
 

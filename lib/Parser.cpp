@@ -10,17 +10,18 @@ namespace AudioFilter {
 
 std::string HeaderParser::getHeaderInfo(const uint8_t *hdr)
 {
-  char info[1024];
   HeaderInfo h;
-  size_t info_size = 0;
+  char info[1024];
+  size_t info_size(0);
   info[0] = 0;
 
   if ( parseHeader(hdr, &h) )
   {
+    const Speakers &s(h.getSpeakers());
     info_size += sprintf(info + info_size, "Stream format: %s %s %iHz\n",
-			 h.spk.getFormatText(), h.spk.getModeText(), h.spk.sample_rate);
+			 s.getFormatText(), s.getModeText(), s.getSampleRate());
 
-    switch ( h.bs_type )
+    switch ( h.getBsType() )
     {
       case BITSTREAM_8:
         info_size += sprintf(info + info_size, "Bitstream type: byte stream\n");
@@ -42,21 +43,21 @@ std::string HeaderParser::getHeaderInfo(const uint8_t *hdr)
         break;
     }
 
-    if ( h.frame_size )
-      info_size += sprintf(info + info_size, "Frame size: %zu\n", h.frame_size);
+    if ( h.getFrameSize() )
+      info_size += sprintf(info + info_size, "Frame size: %zu\n", h.getFrameSize());
     else
       info_size += sprintf(info + info_size, "Frame size: free format\n");
 
-    info_size += sprintf(info + info_size, "Samples: %zu\n", h.nsamples);
+    info_size += sprintf(info + info_size, "Samples: %zu\n", h.getSampleCount());
 
-    if ( h.frame_size > 0 && h.nsamples > 0 )
+    if ( h.getFrameSize() > 0 && h.getSampleCount() > 0 )
       info_size += sprintf(info + info_size, "Bitrate: %zukbps\n"
-                    , h.frame_size * h.spk.sample_rate * 8 / h.nsamples / 1000);
+                    , h.getFrameSize() * s.getSampleRate() * 8 / h.getSampleCount() / 1000);
     else
       info_size += sprintf(info + info_size, "Bitrate: unknown\n");
 
-    if ( h.spdif_type )
-      info_size += sprintf(info + info_size, "SPDIF stream type: 0x%x\n", h.spdif_type);
+    if ( h.isSpdifable() )
+      info_size += sprintf(info + info_size, "SPDIF stream type: 0x%x\n", h.getSpdifType());
   }
   else
   {
@@ -228,10 +229,10 @@ bool StreamBuffer::load(uint8_t **data, uint8_t *end)
   uint8_t *frame_max(_sync.ptr);
 
   /* not sure, but with interleaved frames this might
-   * not be the best algorithm, probably better to just add hinfo.scan_size
+   * not be the best algorithm, probably better to just add hinfo.getScanSize()
    */
-  if ( _hinfo.frame_size && _hinfo.frame_size < _hinfo.scan_size )
-    frame_max += _hinfo.scan_size - _hinfo.frame_size;
+  if ( _hinfo.getFrameSize() && _hinfo.getFrameSize() < _hinfo.getScanSize() )
+    frame_max += _hinfo.getScanSize() - _hinfo.getFrameSize();
 
   while ( _frame.ptr <= frame_max )
   {
@@ -250,22 +251,22 @@ bool StreamBuffer::load(uint8_t **data, uint8_t *end)
     // Load the rest of the frame
 
     if ( ! loadBuffer(data, end, _frame.ptr - _sync.ptr
-            + (hi.frame_size ? hi.frame_size : _frame.interval)) )
+            + (hi.getFrameSize() ? hi.getFrameSize() : _frame.interval)) )
       return false;
 
     ///////////////////////////////////////////////////////////////////////////
     // DONE! Prepare new frame output.
 
-    if ( _hinfo.frame_size )
-      _frame.interval = _hinfo.frame_size + _frame.ptr - _sync.ptr;
+    if ( _hinfo.getFrameSize() )
+      _frame.interval = _hinfo.getFrameSize() + _frame.ptr - _sync.ptr;
 
-    ::memcpy(_headerBuf, _frame.ptr, _hinfo.frame_size);
+    ::memcpy(_headerBuf, _frame.ptr, _hinfo.getFrameSize());
     _parser->parseHeader(_headerBuf, &_hinfo);
 
     _debris.ptr = _sync.ptr;
     _debris.size = _frame.ptr - _sync.ptr;
 
-    _frame.size = ( _hinfo.frame_size ) ? _hinfo.frame_size : _frame.interval;
+    _frame.size = ( _hinfo.getFrameSize() ) ? _hinfo.getFrameSize() : _frame.interval;
 
     ++_frame.count;
     return true;
@@ -353,16 +354,16 @@ bool StreamBuffer::reSync(uint8_t **data, uint8_t *end)
       uint8_t *pf2;
       uint8_t *pf2Max;
 
-      if ( hi1.frame_size )
+      if ( hi1.getFrameSize() )
       {
-        std::cout << "FrameSize1=" << hi1.frame_size << std::endl;
-        pf2 = pf1 + hi1.frame_size;
-        pf2Max = pf1 + MAX(hi1.scan_size, hi1.frame_size);
+        std::cout << "FrameSize1=" << hi1.getFrameSize() << std::endl;
+        pf2 = pf1 + hi1.getFrameSize();
+        pf2Max = pf1 + MAX(hi1.getScanSize(), hi1.getFrameSize());
       }
       else
       {
         pf2 = pf1 + _minFrameSize;
-        pf2Max = pf1 + (hi1.scan_size ? hi1.scan_size : _maxFrameSize);
+        pf2Max = pf1 + (hi1.getScanSize() ? hi1.getScanSize() : _maxFrameSize);
       }
 
       while ( pf2 <= pf2Max )
@@ -388,11 +389,11 @@ bool StreamBuffer::reSync(uint8_t **data, uint8_t *end)
         uint8_t *pf3;
         uint8_t *pf3Max;
 
-        if ( hi2.frame_size )
+        if ( hi2.getFrameSize() )
         {
-          std::cout << "FrameSize2=" << hi2.frame_size << std::endl;
-          pf3 = pf2 + hi2.frame_size;
-          pf3Max = pf2 + MAX(hi2.scan_size, hi2.frame_size);
+          std::cout << "FrameSize2=" << hi2.getFrameSize() << std::endl;
+          pf3 = pf2 + hi2.getFrameSize();
+          pf3Max = pf2 + MAX(hi2.getScanSize(), hi2.getFrameSize());
         }
         else
         {
@@ -418,8 +419,8 @@ bool StreamBuffer::reSync(uint8_t **data, uint8_t *end)
           _debris.ptr = _sync.ptr;
           _debris.size = pf1 - _sync.ptr;
 
-          //const size_t tmpFrameSize(hinfo.frame_size ? hinfo.frame_size : pf2 - pf1);
-          const size_t tmpFrameSize(hi1.frame_size ? hi1.frame_size : pf2 - pf1);
+          //const size_t tmpFrameSize(hinfo.getFrameSize() ? hinfo.getFrameSize() : pf2 - pf1);
+          const size_t tmpFrameSize(hi1.getFrameSize() ? hi1.getFrameSize() : pf2 - pf1);
 
           if ( _debris.size > tmpFrameSize )
             return true;
@@ -428,12 +429,12 @@ bool StreamBuffer::reSync(uint8_t **data, uint8_t *end)
           // DONE! Prepare first frame output.
 
           //::memcpy(_headerBuf, pf1, _headerSize);
-          ::memcpy(_headerBuf, pf1, hi1.frame_size);
+          ::memcpy(_headerBuf, pf1, hi1.getFrameSize());
           _parser->parseHeader(_headerBuf, &_hinfo);
 
           _frame.ptr = pf1;
           _frame.interval = pf2 - pf1;
-          _frame.size = _hinfo.frame_size ? _hinfo.frame_size : _frame.interval;
+          _frame.size = _hinfo.getFrameSize() ? _hinfo.getFrameSize() : _frame.interval;
 
           _isInSync = true;
           _isNewStream = true;
@@ -533,10 +534,10 @@ std::string StreamBuffer::getStreamInfo(void) const
       info_size += sprintf(info + info_size, "Frame interval: %zu\n"
                       , _frame.interval);
 
-      if ( _frame.interval > 0 && _hinfo.nsamples > 0 )
+      if ( _frame.interval > 0 && _hinfo.getSampleCount() > 0 )
       {
         info_size += sprintf(info + info_size, "Actual bitrate: %zukbps\n"
-            , _frame.interval * _hinfo.spk.sample_rate * 8 / _hinfo.nsamples / 1000);
+            , _frame.interval * _hinfo.getSpeakers().getSampleRate() * 8 / _hinfo.getSampleCount() / 1000);
       }
     }
     else

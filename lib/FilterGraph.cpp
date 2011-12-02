@@ -157,7 +157,7 @@ FilterGraph::addNode(int node, Speakers spk)
   // the rest of the chain and set output format to
   // spk_unknown
 
-  if ( spk == spk_unknown )
+  if ( spk == Speakers::UNKNOWN )
   {
     ofdd = true;
 
@@ -353,11 +353,11 @@ FilterGraph::chainText(char *buf, size_t buf_size) const
 
   spk = filter[node]->getInput();
 
-  if ( spk.mask || spk.sample_rate )
+  if ( spk.getMask() || spk.getSampleRate() )
     i = snprintf(buf_ptr, buf_size, "(%s %s %i)"
                     , spk.getFormatText()
                     , spk.getModeText()
-                    , spk.sample_rate);
+                    , spk.getSampleRate());
   else
     i = snprintf(buf_ptr, buf_size, "(%s)", spk.getFormatText());
 
@@ -368,12 +368,12 @@ FilterGraph::chainText(char *buf, size_t buf_size) const
   {
     spk = filter[node]->getOutput();
 
-    if ( spk.mask || spk.sample_rate )
+    if ( spk.getMask() || spk.getSampleRate() )
       i = snprintf(buf_ptr, buf_size, " -> %s -> (%s %s %i)"
                     , getName(node)
                     , spk.getFormatText()
                     , spk.getModeText()
-                    , spk.sample_rate);
+                    , spk.getSampleRate());
     else
       i = snprintf(buf_ptr, buf_size, " -> %s -> (%s)"
                     , getName(node)

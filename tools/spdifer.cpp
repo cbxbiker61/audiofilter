@@ -26,7 +26,7 @@ int main(int argc, const char **argv)
 "Copyright (c) 2011 Kelly Anderson\n"
 "\n"
 "Usage:\n"
-"  spdifer input_file output_file [-raw | -wav] [hdfreqMult]\n"
+"  spdifer input_file output_file [-raw | -wav]\n"
 "\n"
 "Options:\n"
 "  input_file  - file to convert\n"
@@ -44,9 +44,6 @@ int main(int argc, const char **argv)
   Sink *sink = ( argc <= 3 || strcmp(argv[3], "-wav") )
     ? (Sink*)(new RawSink(outfile))
     : (Sink*)(new WavSink(outfile));
-  int hdFreqMult(4);
-  if ( argc >= 5 )
-    hdFreqMult = 16;
 
   MultiHeaderParser *mhp(new MultiHeaderParser());
   mhp->addParser(new SpdifHeaderParser());
@@ -54,7 +51,11 @@ int main(int argc, const char **argv)
   mhp->addParser(new MpaHeaderParser());
   mhp->addParser(new Ac3HeaderParser());
   FileParser *fp(new FileParser(infile, mhp));
-  SpdifWrapper spdif(mhp, hdFreqMult);
+  SpdifWrapper spdif(mhp);
+  spdif.addChannelMap(8, 192000);
+  spdif.addChannelMap(2, 192000);
+  spdif.addChannelMap(2, 48000);
+  spdif.addChannelMap(8, 48000);
 
   int streams(0);
   int frames(0);
@@ -78,13 +79,28 @@ int main(int argc, const char **argv)
 
       if ( spdif.parseFrame(fp->getFrame(), fp->getFrameSize()) )
       {
-        Speakers spk = spdif.getSpk();
+        const Speakers &spk(spdif.getSpeakers());
 
-        if ( spk.format == FORMAT_SPDIF )
+        if ( spk.isSpdif() )
         {
+          static bool hasPrinted(false);
+
+          if ( ! hasPrinted )
+          {
+            std::cout << "Format Spdif:"
+                  << " channels" << spk.getChannelCount()
+                  << " sampleRate" << spk.getSampleRate()
+                  << std::endl;
+            hasPrinted = true;
+          }
+
+#if 1
+          chunk.setRawData(spk, spdif.getRawData(), spdif.getRawSize());
+#else
           chunk.setRawData(
-                Speakers(FORMAT_PCM16, MODE_STEREO, spk.sample_rate)
+                Speakers(FORMAT_PCM16, MODE_STEREO, spk.getSampleRate())
                 , spdif.getRawData(), spdif.getRawSize());
+#endif
 
           if ( sink->process(&chunk) )
             size += chunk.size;
@@ -120,7 +136,7 @@ int main(int argc, const char **argv)
         , int(processed/elapsed/1000000)
         , (long)(size / 1000000)
         , frames
-        , fp->isInSync() ? fp->getSpk().getFormatText(): "Unknown");
+        , fp->isInSync() ? fp->getSpeakers().getFormatText(): "Unknown");
 
       std::cerr << info << std::flush;
     }

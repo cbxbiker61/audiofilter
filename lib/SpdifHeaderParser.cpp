@@ -7,9 +7,9 @@ AudioFilter::Ac3HeaderParser ac3HeaderParser;
 AudioFilter::MpaHeaderParser mpaHeaderParser;
 AudioFilter::DtsHeaderParser dtsHeaderParser;
 
-inline AudioFilter::HeaderParser *findParser(int spdif_type)
+inline AudioFilter::HeaderParser *findParser(int spdifType)
 {
-  switch ( spdif_type )
+  switch ( spdifType )
   {
     // AC3
     case 1:
@@ -60,13 +60,15 @@ bool SpdifHeaderParser::parseHeader(const uint8_t *hdr, HeaderInfo *hinfo)
 
       if ( hinfo )
       {
-        hinfo->bs_type = BITSTREAM_16LE;
-        hinfo->spk = subinfo.spk;
-        hinfo->spk.format = FORMAT_SPDIF;
-        hinfo->frame_size = subinfo.nsamples * 4;
-        hinfo->scan_size = subinfo.nsamples * 4;
-        hinfo->nsamples = subinfo.nsamples;
-        hinfo->spdif_type = header->_sync._type;
+        hinfo->setBsType(BITSTREAM_16LE);
+        Speakers s(subinfo.getSpeakers());
+        s.setFormat(FORMAT_SPDIF);
+        hinfo->setSpeakers(s);
+        const size_t sc(subinfo.getSampleCount());
+        hinfo->setFrameSize(sc * 4);
+        hinfo->setScanSize(sc * 4);
+        hinfo->setSampleCount(sc);
+        hinfo->setSpdifType(header->_sync._type);
       }
 
       return true;
@@ -125,10 +127,10 @@ std::string SpdifHeaderParser::getHeaderInfo(const uint8_t *hdr)
 
       if ( parser->parseHeader(subheader, &subinfo) )
       {
+        const Speakers &s(subinfo.getSpeakers());
         info_size += sprintf(info + info_size, "Stream format: SPDIF/%s %s %iHz\n",
-			     subinfo.spk.getFormatText(), subinfo.spk.getModeText(),
-			     subinfo.spk.sample_rate);
-        const std::string &hi = parser->getHeaderInfo(subheader);
+			     s.getFormatText(), s.getModeText(), s.getSampleRate());
+        const std::string &hi(parser->getHeaderInfo(subheader));
         strcat(info, hi.c_str());
         info_size += hi.size();
       }

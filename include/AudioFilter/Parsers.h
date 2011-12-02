@@ -159,40 +159,118 @@ class StreamBuffer;
 //   Size of header buffer given must be >= header_size() (it is not verified
 //   and may lead to memory fault).
 
-struct HeaderInfo
+class HeaderInfo
 {
+public:
   HeaderInfo()
-    : spk(spk_unknown)
-    , frame_size(0)
-    , hd_size(0)
-    , scan_size(0)
-    , nsamples(0)
-    , bs_type(0)
-    , spdif_type(0)
+    : _spk(Speakers::UNKNOWN)
+    , _frameSize(0)
+    , _dtsHdSize(0)
+    , _scanSize(0)
+    , _sampleCount(0)
+    , _bsType(0)
+    , _spdifType(0)
   {}
 
   void drop(void)
   {
-    spk = spk_unknown;
-    frame_size = 0;
-    scan_size = 0;
-    nsamples = 0;
-    bs_type = BITSTREAM_NONE;
-    spdif_type = 0;
+    _spk = Speakers::UNKNOWN;
+    _frameSize = 0;
+    _dtsHdSize = 0;
+    _scanSize = 0;
+    _sampleCount = 0;
+    _bsType = BITSTREAM_NONE;
+    _spdifType = 0;
   }
 
-  bool isHd(void)
+  const Speakers &getSpeakers(void) const
   {
-      return hd_size != 0;
+    return _spk;
   }
 
-  Speakers spk;
-  size_t frame_size;
-  size_t hd_size;
-  size_t scan_size;
-  size_t nsamples;
-  int bs_type;
-  uint16_t spdif_type;
+  void setSpeakers(const Speakers &spk)
+  {
+    _spk = spk;
+  }
+
+  void setFrameSize(size_t frameSize)
+  {
+    _frameSize = frameSize;
+  }
+
+  size_t getFrameSize(void) const
+  {
+    return _frameSize;
+  }
+
+  void setDtsHdSize(size_t dtsHdSize)
+  {
+      _dtsHdSize = dtsHdSize;
+  }
+
+  size_t getDtsHdSize(void) const
+  {
+      return _dtsHdSize;
+  }
+
+  bool isDtsHd(void) const
+  {
+      return _dtsHdSize != 0;
+  }
+
+  void setScanSize(size_t scanSize)
+  {
+    _scanSize = scanSize;
+  }
+
+  size_t getScanSize(void) const
+  {
+    return _scanSize;
+  }
+
+  void setSampleCount(size_t sampleCount)
+  {
+    _sampleCount = sampleCount;
+  }
+
+  size_t getSampleCount(void) const
+  {
+    return _sampleCount;
+  }
+
+  void setBsType(int bsType)
+  {
+    _bsType = bsType;
+  }
+
+  int getBsType(void) const
+  {
+    return _bsType;
+  }
+
+  void setSpdifType(int spdifType)
+  {
+    _spdifType = spdifType;
+  }
+
+  int getSpdifType(void) const
+  {
+    return _spdifType;
+  }
+
+  bool isSpdifable(void) const
+  {
+      return _spdifType != 0;
+  }
+
+private:
+  Speakers _spk;
+  size_t _frameSize;
+  size_t _dtsHdSize;
+  size_t _scanSize;
+  size_t _sampleCount;
+  int _bsType;
+  uint16_t _spdifType;
 };
 
 class HeaderParser
@@ -233,6 +311,35 @@ public:
   virtual bool canParse(int format)
   {
     return format == FORMAT_AC3;
+  }
+
+  virtual bool parseHeader(const uint8_t *hdr, HeaderInfo *hi = 0);
+  virtual bool compareHeaders(const uint8_t *hdr1, const uint8_t *hdr2);
+};
+
+class TrueHdHeaderParser : public HeaderParser
+{
+public:
+  TrueHdHeaderParser() {}
+
+  virtual size_t getHeaderSize(void) const
+  {
+    return 8;
+  }
+
+  virtual size_t getMinFrameSize(void) const
+  {
+    return 128;
+  }
+
+  virtual size_t getMaxFrameSize(void) const
+  {
+    return 3814;
+  }
+
+  virtual bool canParse(int format)
+  {
+    return format == FORMAT_TRUEHD;
   }
 
   virtual bool parseHeader(const uint8_t *hdr, HeaderInfo *hi = 0);
@@ -470,9 +577,9 @@ public:
   /////////////////////////////////////////////////////////
   // Transformed data access
 
-  virtual Speakers getSpk(void) const = 0;
+  virtual const Speakers &getSpeakers(void) const = 0;
   virtual samples_t getSamples(void) const = 0;
-  virtual size_t getNSamples(void) const = 0;
+  virtual size_t getSampleCount(void) const = 0;
   virtual uint8_t *getRawData(void) const = 0;
   virtual size_t getRawSize(void) const = 0;
 
@@ -626,7 +733,7 @@ public:
   virtual void reset(void);
   virtual bool parseFrame(uint8_t *frame, size_t size);
 
-  virtual Speakers getSpk(void) const
+  virtual const Speakers &getSpeakers(void) const
   {
     return spk;
   }
@@ -636,7 +743,7 @@ public:
     return samples;
   }
 
-  virtual size_t getNSamples(void) const
+  virtual size_t getSampleCount(void) const
   {
     return AC3_FRAME_SAMPLES;
   }
@@ -978,9 +1085,9 @@ public:
     return _debris.size;
   }
 
-  Speakers getSpk(void) const
+  const Speakers &getSpeakers(void) const
   {
-    return _hinfo.spk;
+    return _hinfo.getSpeakers();
   }
 
   uint8_t *getFrame(void) const

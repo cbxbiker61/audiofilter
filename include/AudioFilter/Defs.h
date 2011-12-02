@@ -282,7 +282,7 @@ const char *valib_credits();
 // one of the most important constants:
 // maximum number of channels supported by library
 
-#define NCHANNELS 6
+#define NCHANNELS 8
 
 // pi constant
 

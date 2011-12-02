@@ -80,7 +80,7 @@ void Ac3Parser::reset(void)
   memset((AC3Info*)this, 0, sizeof(AC3Info));
   memset((AC3FrameState*)this, 0, sizeof(AC3FrameState));
 
-  spk = spk_unknown;
+  spk = Speakers::UNKNOWN;
   frame = 0;
   frame_size = 0;
   bs_type = 0;
@@ -121,8 +121,8 @@ bool Ac3Parser::parseFrame(uint8_t *frame, size_t size)
 std::string Ac3Parser::getStreamInfo(void) const
 {
   char info[1024];
-  int max_freq = (cplinu? MAX(endmant[0], cplendmant): endmant[0]) * spk.sample_rate / 512000;
-  int cpl_freq = cplinu? cplstrtmant * spk.sample_rate / 512000: max_freq;
+  int max_freq = (cplinu? MAX(endmant[0], cplendmant): endmant[0]) * spk.getSampleRate() / 512000;
+  int cpl_freq = cplinu? cplstrtmant * spk.getSampleRate() / 512000: max_freq;
   info[0] = 0;
 
   sprintf(info,
@@ -139,7 +139,7 @@ std::string Ac3Parser::getStreamInfo(void) const
     "dialnorm: -%idB\n"
     "bandwidth: %ikHz/%ikHz\n",
     spk.getModeText(),
-    spk.sample_rate,
+    spk.getSampleRate(),
     bitrate,
     (bs_type == BITSTREAM_8 ? "8 bit": "16bit little endian"),
     frame_size,
@@ -168,14 +168,14 @@ bool Ac3Parser::startParse(uint8_t *_frame, size_t _size)
   if ( ! ac3_header.parseHeader(_frame, &hinfo) )
     return false;
 
-  if ( hinfo.frame_size > _size )
+  if ( hinfo.getFrameSize() > _size )
     return false;
 
-  spk = hinfo.spk;
-  spk.format = FORMAT_LINEAR;
+  spk = hinfo.getSpeakers();
+  spk.setLinear();
   frame = _frame;
-  frame_size = hinfo.frame_size;
-  bs_type = hinfo.bs_type;
+  frame_size = hinfo.getFrameSize();
+  bs_type = hinfo.getBsType();
 
   if ( bs_type != BITSTREAM_8 )
     if ( bs_convert(frame, _size, bs_type, frame, BITSTREAM_8) == 0 )
@@ -372,8 +372,8 @@ bool Ac3Parser::parseHeader(void)
 
 bool Ac3Parser::decodeBlock(void)
 {
-  samples_t d = delay;
-  samples_t s = samples;
+  samples_t d(delay);
+  samples_t s(samples);
   s += (block * AC3_BLOCK_SAMPLES);
 
   if ( block >= AC3_NBLOCKS || ! parseBlock() )
@@ -386,7 +386,7 @@ bool Ac3Parser::decodeBlock(void)
 
   if ( do_imdct )
   {
-    int nfchans = spk.lfe() ? spk.nch() - 1: spk.nch();
+    const int nfchans(spk.hasLfe() ? spk.getChannelCount() - 1: spk.getChannelCount());
 
     for ( int ch = 0; ch < nfchans; ++ch )
     {
@@ -396,7 +396,7 @@ bool Ac3Parser::decodeBlock(void)
         imdct.imdct_512(s[ch], delay[ch]);
     }
 
-    if ( spk.lfe() )
+    if ( spk.hasLfe() )
       imdct.imdct_512(s[nfchans], d[nfchans]);
   }
 
@@ -406,8 +406,7 @@ bool Ac3Parser::decodeBlock(void)
 
 bool Ac3Parser::parseBlock(void)
 {
-  int nfchans = nfchans_tbl[acmod];
-  int ch, bnd;
+  const int nfchans(nfchans_tbl[acmod]);
 
   ///////////////////////////////////////////////
   // bit allocation bitarray; bits are:
@@ -416,17 +415,17 @@ bool Ac3Parser::parseBlock(void)
   // 6   = do bit allocation for coupling channel
   int bitalloc = 0;
 
-  for ( ch = 0; ch < nfchans; ++ch )
+  for ( int ch = 0; ch < nfchans; ++ch )
     blksw[ch] = bs.getBool();                // 'blksw[ch]' - block switch flag
 
-  for ( ch = 0; ch < nfchans; ++ch )
+  for ( int ch = 0; ch < nfchans; ++ch )
     dithflag[ch] = bs.getBool();             // 'dithflag[ch]' - dither flag
 
   // reset dithering info
   // if we do not want to dither
   if ( ! do_dither )
   {
-    for ( ch = 0; ch < nfchans; ++ch )
+    for ( int ch = 0; ch < nfchans; ++ch )
       dithflag[ch] = 0;
   }
 
@@ -458,7 +457,7 @@ bool Ac3Parser::parseBlock(void)
       if ( acmod == AC3_MODE_MONO || acmod == AC3_MODE_DUAL )
         return false;                         // this modes are not allowed for coupling
                                               // constraint p...
-      for ( ch = 0; ch < nfchans; ++ch )
+      for ( int ch = 0; ch < nfchans; ++ch )
         chincpl[ch] = bs.getBool();          // 'chincpl[ch]' - channel in coupliing
 
       if ( acmod == AC3_MODE_STEREO )
@@ -478,9 +477,9 @@ bool Ac3Parser::parseBlock(void)
       ncplbnd = 0;
       cplbnd[0] = cplstrtmant + 12;
 
-      for ( bnd = 0; bnd < ncplsubnd - 1; ++bnd )
+      for ( int bnd = 0; bnd < ncplsubnd - 1; ++bnd )
       {
-        if ( bs.getBool() )                    // 'cplbndstrc[bnd]' - coupling band structure
+        if ( bs.getBool() ) // 'cplbndstrc[bnd]' - coupling band structure
           cplbnd[ncplbnd] += 12;
         else
         {
@@ -515,32 +514,34 @@ bool Ac3Parser::parseBlock(void)
     int  cplcoexp;
     int  cplcomant;
 
-    for ( ch = 0; ch < nfchans; ++ch )
-      if ( chincpl[ch] )
-        if ( bs.getBool() )                    // 'cplcoe[ch]' coupling coordinates exists
+    for ( int ch = 0; ch < nfchans; ++ch )
+    {
+      if ( chincpl[ch] && bs.getBool() ) // 'cplcoe[ch]' coupling coordinates exists
+      {
+        cplcoe = true;
+
+        mstrcplco = bs.get(2) * 3; // 'mstrcplco' - master coupling coordinate
+
+        for ( int bnd = 0; bnd < ncplbnd; ++bnd )
         {
-          cplcoe = true;
+          cplcoexp  = bs.get(4);            // 'cplcoexp' - coupling coordinate exponent
+          cplcomant = bs.get(4);            // 'cplcomant' - coupling coordinate mantissa
 
-          mstrcplco = bs.get(2) * 3;          // 'mstrcplco' - master coupling coordinate
-          for ( bnd = 0; bnd < ncplbnd; ++bnd )
-          {
-            cplcoexp  = bs.get(4);            // 'cplcoexp' - coupling coordinate exponent
-            cplcomant = bs.get(4);            // 'cplcomant' - coupling coordinate mantissa
+          if ( cplcoexp == 15 )
+            cplcomant <<= 14;
+          else
+            cplcomant = (cplcomant | 0x10) << 13;
 
-            if ( cplcoexp == 15 )
-              cplcomant <<= 14;
-            else
-              cplcomant = (cplcomant | 0x10) << 13;
-
-            cplco[ch][bnd] = cplcomant * scale_factor[cplcoexp + mstrcplco];
-          } // for (int bnd = 0; bnd < ncplbnd; bnd++)
-        } // if (bs.get_bool())               // 'cplcoe[ch]' coupling coordinates exists
+          cplco[ch][bnd] = cplcomant * scale_factor[cplcoexp + mstrcplco];
+        } // for (int bnd = 0; bnd < ncplbnd; bnd++)
+      } // if (bs.get_bool()) // 'cplcoe[ch]' coupling coordinates exists
+    }
 
     if ( acmod == AC3_MODE_STEREO && phsflginu && cplcoe )
     {
-      for ( bnd = 0; bnd < ncplbnd; ++bnd )
+      for ( int bnd = 0; bnd < ncplbnd; ++bnd )
       {
-        if ( bs.getBool() )                    // 'phsflg' - phase flag
+        if ( bs.getBool() ) // 'phsflg' - phase flag
           cplco[1][bnd] = -cplco[1][bnd];
       }
     }
@@ -551,13 +552,13 @@ bool Ac3Parser::parseBlock(void)
   /////////////////////////////////////////////////////////
 
   if ( acmod == AC3_MODE_STEREO )
-    if ( bs.getBool() )                        // 'rematstr' - rematrixing strategy
+    if ( bs.getBool() ) // 'rematstr' - rematrixing strategy
     {
-      bnd = 0;
+      int bnd = 0;
       rematflg = 0;
       int endbin = cplinu ? cplstrtmant: 253;
       do
-        rematflg |= bs.get(1) << bnd;         // rematflg[bnd] - rematrix flag
+        rematflg |= bs.get(1) << bnd; // rematflg[bnd] - rematrix flag
       while (rematrix_tbl[bnd++] < endbin);
     }
 /*
@@ -583,7 +584,7 @@ bool Ac3Parser::parseBlock(void)
       return false;
   }
 
-  for ( ch = 0; ch < nfchans; ++ch )
+  for ( int ch = 0; ch < nfchans; ++ch )
   {
     chexpstr[ch] = bs.get(2); // 'chexpstr[ch]' - channel exponent strategy
 
@@ -599,7 +600,7 @@ bool Ac3Parser::parseBlock(void)
       return false;
   }
 
-  for ( ch = 0; ch < nfchans; ++ch )
+  for ( int ch = 0; ch < nfchans; ++ch )
   {
     if ( chexpstr[ch] != EXP_REUSE )
     {
@@ -629,7 +630,7 @@ bool Ac3Parser::parseBlock(void)
 
   int nexpgrps = 0; // init to something so gcc -O doesn't complain
 
-  for ( ch = 0; ch < nfchans; ++ch )
+  for ( int ch = 0; ch < nfchans; ++ch )
   {
     if ( chexpstr[ch] != EXP_REUSE )
     {
@@ -694,7 +695,7 @@ bool Ac3Parser::parseBlock(void)
       cplfgain = fgain_tbl[bs.get(3)]; // 'cplfgaincod' - coupling fast gain code
     }
 
-    for ( ch = 0; ch < nfchans; ++ch )
+    for ( int ch = 0; ch < nfchans; ++ch )
     {
       int fsnroffst = bs.get(4); // 'fsnroffst' - channel fine SNR offset
       snroffset[ch] = (((csnroffst - 15) << 4) + fsnroffst) << 2;
@@ -743,7 +744,7 @@ bool Ac3Parser::parseBlock(void)
         return false;
     }
 
-    for ( ch = 0; ch < nfchans; ++ch )
+    for ( int ch = 0; ch < nfchans; ++ch )
     {
       deltbae[ch] = bs.get(2); // 'deltbae[ch]' - delta bit allocation exists
 
@@ -755,7 +756,7 @@ bool Ac3Parser::parseBlock(void)
       if ( ! parseDeltba(cpldeltba) )
         return false;
 
-    for ( ch = 0; ch < nfchans; ++ch )
+    for ( int ch = 0; ch < nfchans; ++ch )
     {
       if ( deltbae[ch] == DELTA_BIT_NEW )
         if ( ! parseDeltba(deltba[ch]) )
@@ -784,7 +785,7 @@ bool Ac3Parser::parseBlock(void)
     bool got_cplchan = false;
     BAP_BitCount counter;
 
-    for ( ch = 0; ch < nfchans; ++ch )
+    for ( int ch = 0; ch < nfchans; ++ch )
     {
       if ( bitalloc & (1 << ch) )
       {
@@ -968,7 +969,6 @@ bool Ac3Parser::parseDeltba(int8_t *deltba)
 
 void Ac3Parser::parseCoeff(samples_t samples)
 {
-  int bnd;
   int s;
   Quantizer q;
 
@@ -1024,7 +1024,7 @@ void Ac3Parser::parseCoeff(samples_t samples)
     {
       s = cplstrtmant;
 
-      for ( bnd = 0; bnd < ncplbnd; ++bnd )
+      for ( int bnd = 0; bnd < ncplbnd; ++bnd )
         while ( s < cplbnd[bnd] )
           samples[ch][s++] *= cplco[ch][bnd];
     }

@@ -32,7 +32,7 @@ const HeaderParser *MpaFrameParser::getHeaderParser(void) const
 
 void MpaFrameParser::reset(void)
 {
-  _spk = spk_unknown;
+  _spk = Speakers::UNKNOWN;
   _samples.zero();
 
   _synth[0]->reset();

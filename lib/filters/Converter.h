@@ -55,11 +55,6 @@ protected:
   void convertPcm2linear(void);
   void convertLinear2pcm(void);
 
-  bool isLpcm(int format)
-  {
-    return format == FORMAT_LPCM20 || format == FORMAT_LPCM24;
-  }
-
 public:
   Converter(size_t _nsamples);
 

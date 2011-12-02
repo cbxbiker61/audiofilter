@@ -79,33 +79,35 @@ bool AgcFilter::fillBuffer(void)
     sync = false;
   }
 
-  size_t n = nsamples - sample[block];
+  size_t n(nsamples - sample[block]);
+
+  const int maxCh(spk.getChannelCount());
 
   if ( size < n )
   {
-    for ( int ch = 0; ch < spk.nch(); ++ch )
+    for ( int ch = 0; ch < maxCh; ++ch )
       memcpy(buf[block][ch] + sample[block], samples[ch], size * sizeof(sample_t));
 
     sample[block] += size;
-    time += vtime_t(size) / spk.sample_rate;
+    time += vtime_t(size) / spk.getSampleRate();
     dropSamples(size);
 
     if ( ! flushing )
       return false;
 
     // zero rest of buffer in case of flushing
-    for ( int ch = 0; ch < spk.nch(); ++ch )
+    for ( int ch = 0; ch < maxCh; ++ch )
       memset(buf[block][ch] + sample[block], 0, (nsamples - sample[block]) * sizeof(sample_t));
 
     return true;
   }
   else
   {
-    for ( int ch = 0; ch < spk.nch(); ++ch )
+    for ( int ch = 0; ch < maxCh; ++ch )
       memcpy(buf[block][ch] + sample[block], samples[ch], n * sizeof(sample_t));
 
     sample[block] = nsamples;
-    time += vtime_t(n) / spk.sample_rate;
+    time += vtime_t(n) / spk.getSampleRate();
     dropSamples(n);
 
     return true;
@@ -114,10 +116,8 @@ bool AgcFilter::fillBuffer(void)
 
 void AgcFilter::process(void)
 {
-  size_t s;
-  int ch;
-  int nch = spk.nch();
-  sample_t spk_level = spk.level;
+  const int maxCh(spk.getChannelCount());
+  const sample_t spk_level(spk.getLevel());
 
   sample_t max;
   sample_t *sptr;
@@ -129,7 +129,7 @@ void AgcFilter::process(void)
   ///////////////////////////////////////
   // Channel levels
 
-  for ( ch = 0; ch < nch; ++ch )
+  for ( int ch = 0; ch < maxCh; ++ch )
   {
     max = 0;
     sptr = buf[block][ch];
@@ -185,14 +185,14 @@ void AgcFilter::process(void)
   if ( release < 0 )
     release = 0;
 
-  attack_factor  = pow(10.0, attack  * nsamples / spk.sample_rate / 20);
-  release_factor = pow(10.0, release * nsamples / spk.sample_rate / 20);
+  attack_factor  = pow(10.0, attack  * nsamples / spk.getSampleRate() / 20);
+  release_factor = pow(10.0, release * nsamples / spk.getSampleRate() / 20);
 
   // block level
 
   level = levels_loc[0];
 
-  for ( ch = 1; ch < nch; ++ch )
+  for ( int ch = 1; ch < maxCh; ++ch )
   {
     if ( level < levels_loc[ch] )
       level = levels_loc[ch];
@@ -279,11 +279,11 @@ void AgcFilter::process(void)
   if ( ! EQUAL_SAMPLES(old_factor, factor) )
   {
     // windowing
-    for ( ch = 0; ch < nch; ++ch )
+    for ( int ch = 0; ch < maxCh; ++ch )
     {
       sptr = buf[block][ch];
 
-      for ( s = 0; s < nsamples; ++s, ++sptr )
+      for ( size_t s = 0; s < nsamples; ++s, ++sptr )
       {
         *sptr = *sptr * old_factor * w[1][s]
                 + *sptr * factor * w[0][s];
@@ -293,11 +293,11 @@ void AgcFilter::process(void)
   else if ( ! EQUAL_SAMPLES(factor, 1.0) )
   {
     // simple gain
-    for ( ch = 0; ch < nch; ++ch )
+    for ( int ch = 0; ch < maxCh; ++ch )
     {
       sptr = buf[block][ch];
 
-      for ( s = 0; s < nsamples; ++s, ++sptr )
+      for ( size_t s = 0; s < nsamples; ++s, ++sptr )
         *sptr *= factor;
     }
   }
@@ -309,11 +309,11 @@ void AgcFilter::process(void)
 
   if ( level * factor > 1.0 || old_level * old_factor > 1.0 )
   {
-    for ( ch = 0; ch < nch; ++ch )
+    for ( int ch = 0; ch < maxCh; ++ch )
     {
       sptr = buf[block][ch];
 
-      for ( s = 0; s < nsamples; ++s, ++sptr )
+      for ( size_t s = 0; s < nsamples; ++s, ++sptr )
       {
         if ( *sptr > +spk_level )
           *sptr = +spk_level;
@@ -323,7 +323,6 @@ void AgcFilter::process(void)
     }
   }
 }
-
 
 ///////////////////////////////////////////////////////////
 // Filter interface

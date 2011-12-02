@@ -49,8 +49,8 @@
 
   mask - channels bitmask. Defines a set of existing channels. Number of bits
     set defines number of channels so class have no separate field to avoid
-    ambiguity. But it is nch() function that returns number of channels for
-    current mask.
+    ambiguity. But it is getChannelCount() function that returns number of
+    channels for current mask.
 
     Format and mask also define channel ordering. Different formats may have
     different channel ordering. Channel order for FORMAT_LINEAR is called
@@ -121,12 +121,13 @@ namespace AudioFilter {
 #define FORMAT_MPA        12
 #define FORMAT_AC3        13
 #define FORMAT_DTS        14
+#define FORMAT_TRUEHD     15
 
 // DVD LPCM
 // Note: the sample size for this formats is doubled because
 // LPCM samples are packed into blocks of 2 samples.
-#define FORMAT_LPCM20     15
-#define FORMAT_LPCM24     16
+#define FORMAT_LPCM20     16
+#define FORMAT_LPCM24     17
 
 ///////////////////////////////////////////////////////////////////////////////
 // Format masks
@@ -161,6 +162,7 @@ namespace AudioFilter {
 #define FORMAT_MASK_AC3          FORMAT_MASK(FORMAT_AC3)
 #define FORMAT_MASK_MPA          FORMAT_MASK(FORMAT_MPA)
 #define FORMAT_MASK_DTS          FORMAT_MASK(FORMAT_DTS)
+#define FORMAT_MASK_TRUEHD       FORMAT_MASK(FORMAT_TRUEHD)
 
 // DVD LPCM
 #define FORMAT_MASK_LPCM20       FORMAT_MASK(FORMAT_LPCM20)
@@ -176,8 +178,8 @@ namespace AudioFilter {
 #define FORMAT_CLASS_PCM         (FORMAT_CLASS_PCM_LE  | FORMAT_CLASS_PCM_BE  | FORMAT_CLASS_PCM_FP)
 #define FORMAT_CLASS_LPCM        (FORMAT_MASK_LPCM20   | FORMAT_MASK_LPCM24)
 #define FORMAT_CLASS_CONTAINER   (FORMAT_MASK_PES | FORMAT_MASK_SPDIF)
-#define FORMAT_CLASS_SPDIFABLE   (FORMAT_MASK_MPA | FORMAT_MASK_AC3 | FORMAT_MASK_DTS)
-#define FORMAT_CLASS_COMPRESSED  (FORMAT_MASK_MPA | FORMAT_MASK_AC3 | FORMAT_MASK_DTS)
+#define FORMAT_CLASS_SPDIFABLE   (FORMAT_MASK_MPA | FORMAT_MASK_AC3 | FORMAT_MASK_DTS | FORMAT_MASK_TRUEHD)
+#define FORMAT_CLASS_COMPRESSED  (FORMAT_MASK_MPA | FORMAT_MASK_AC3 | FORMAT_MASK_DTS | FORMAT_MASK_TRUEHD)
 
 ///////////////////////////////////////////////////////////////////////////////
 // Channel numbers (that also define 'standard' channel order)
@@ -189,7 +191,9 @@ namespace AudioFilter {
 #define CH_R    2  // Right channel
 #define CH_SL   3  // Surround left channel
 #define CH_SR   4  // Surround right channel
-#define CH_LFE  5  // LFE channel
+#define CH_SBL  5  // Surround back left channel
+#define CH_SBR  6  // Surround back right channel
+#define CH_LFE  7  // LFE channel
 #define CH_NONE -1 // indicates that channel is not used in channel order
 
 // synonyms
@@ -212,7 +216,9 @@ namespace AudioFilter {
 #define CH_MASK_R    4
 #define CH_MASK_SL   8
 #define CH_MASK_SR   16
-#define CH_MASK_LFE  32
+#define CH_MASK_SBL  32
+#define CH_MASK_SBR  64
+#define CH_MASK_LFE  128
 
 // synonyms
 #define CH_MASK_M    2
@@ -245,6 +251,7 @@ namespace AudioFilter {
 #define MODE_STEREO  MODE_2_0
 #define MODE_QUADRO  MODE_2_2
 #define MODE_5_1     MODE_3_2_LFE
+#define MODE_7_1     (MODE_3_2_LFE | CH_MASK_SBL | CH_MASK_SBR)
 
 ///////////////////////////////////////////////////////////////////////////////
 // Interchannel relations
@@ -263,12 +270,6 @@ namespace AudioFilter {
 class Speakers
 {
 public:
-  int format; // data format
-  int mask; // channel mask
-  int sample_rate; // sample rate
-  int relation; // interchannel relation
-  sample_t level; // 0dB level
-
   Speakers()
   {
     setUnknown();
@@ -281,15 +282,24 @@ public:
 
   inline void set(int format, int mask, int sample_rate, sample_t level = -1, int relation = NO_RELATION);
   inline void setUnknown(void);
-
   inline bool isUnknown(void) const;
   inline bool isLinear(void) const;
+  inline void setLinear(void);
   inline bool isRawData(void) const;
   inline bool isPcm(void) const;
+  inline bool isDts(void) const;
+  inline bool isLpcm(void) const;
   inline bool isFloatingPoint(void) const;
   inline bool isSpdif(void) const;
-  inline int  nch(void) const;
-  inline bool lfe(void) const;
+  inline void setFormat(int);
+  inline int  getFormat(void) const;
+  inline void setMask(int);
+  inline int  getMask(void) const;
+  inline void setSampleRate(int);
+  inline int  getSampleRate(void) const;
+  inline int  getChannelCount(void) const;
+  inline sample_t getLevel(void) const;
+  inline bool hasLfe(void) const;
   inline const int *order(void) const;
   inline int  getSampleSize(void) const;
 
@@ -298,14 +308,16 @@ public:
 
   inline const char *getFormatText(void) const;
   inline const char *getModeText(void) const;
+
+  static const Speakers UNKNOWN;
+  static const Speakers RAWDATA;
+private:
+  int format; // data format
+  int mask; // channel mask
+  int sample_rate; // sample rate
+  int relation; // interchannel relation
+  sample_t level; // 0dB level
 };
-
-///////////////////////////////////////////////////////////////////////////////
-// Constants for common audio formats
-///////////////////////////////////////////////////////////////////////////////
-
-extern const Speakers spk_unknown;
-extern const Speakers spk_rawdata;
 
 ///////////////////////////////////////////////////////////////////////////////
 // Constants for common channel orders
@@ -319,10 +331,9 @@ extern const int win_order[NCHANNELS];
 // Block of pointers to sample buffers for each channel for linear format.
 ///////////////////////////////////////////////////////////////////////////////
 
-struct samples_t
+class samples_t
 {
-  sample_t *samples[NCHANNELS];
-
+public:
   inline sample_t *&operator [](unsigned ch)       { return samples[ch]; }
   inline sample_t  *operator [](unsigned ch) const { return samples[ch]; }
 
@@ -335,6 +346,8 @@ struct samples_t
   void reorderToStd(Speakers spk, const int order[NCHANNELS]);
   void reorderFromStd(Speakers spk, const int order[NCHANNELS]);
   void reorder(Speakers spk, const int input_order[NCHANNELS], const int output_order[NCHANNELS]);
+private:
+  sample_t *samples[NCHANNELS];
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -421,19 +434,34 @@ inline bool Speakers::isLinear(void) const
   return format == FORMAT_LINEAR;
 }
 
+inline void Speakers::setLinear(void)
+{
+  format = FORMAT_LINEAR;
+}
+
 inline bool Speakers::isRawData(void) const
 {
   return format != FORMAT_LINEAR;
 }
 
+inline bool Speakers::isDts(void) const
+{
+  return format == FORMAT_DTS;
+}
+
 inline bool Speakers::isPcm(void) const
 {
-  return (FORMAT_MASK(format) & FORMAT_CLASS_PCM) != 0;
+  return (FORMAT_MASK(format) & FORMAT_CLASS_PCM);
+}
+
+inline bool Speakers::isLpcm(void) const
+{
+  return (FORMAT_MASK(format) & FORMAT_CLASS_LPCM);
 }
 
 inline bool Speakers::isFloatingPoint(void) const
 {
-  return (FORMAT_MASK(format) & FORMAT_CLASS_PCM_FP) != 0;
+  return (FORMAT_MASK(format) & FORMAT_CLASS_PCM_FP);
 }
 
 inline bool Speakers::isSpdif(void) const
@@ -441,13 +469,50 @@ inline bool Speakers::isSpdif(void) const
   return format == FORMAT_SPDIF;
 }
 
-inline int Speakers::nch(void) const
+inline void Speakers::setFormat(int fmt)
 {
+  format = fmt;
+}
+
+inline int Speakers::getFormat(void) const
+{
+  return format;
+}
+
+inline void Speakers::setMask(int msk)
+{
+  mask = msk;
+}
+
+inline int Speakers::getMask(void) const
+{
+  return mask;
+}
+
+inline void Speakers::setSampleRate(int rate)
+{
+  sample_rate = rate;
+}
+
+inline int Speakers::getSampleRate(void) const
+{
+  return sample_rate;
+}
+
+inline int Speakers::getChannelCount(void) const
+{
+  if ( mask == MODE_7_1 )
+    return 8;
   return maskNch(mask);
 }
 
+inline sample_t Speakers::getLevel(void) const
+{
+  return level;
+}
+
 inline bool
-Speakers::lfe(void) const
+Speakers::hasLfe(void) const
 {
   return (mask & CH_MASK_LFE) != 0;
 }
@@ -534,6 +599,9 @@ Speakers::getFormatText(void) const
     case FORMAT_DTS:
       return "DTS";
       break;
+    case FORMAT_TRUEHD:
+      return "TRUEHD";
+      break;
     case FORMAT_LPCM20:
       return "LPCM 20bit";
       break;
@@ -572,60 +640,45 @@ Speakers::getModeText(void) const
 inline samples_t &
 samples_t::operator +=(int _n)
 {
-  samples[0] += _n;
-  samples[1] += _n;
-  samples[2] += _n;
-  samples[3] += _n;
-  samples[4] += _n;
-  samples[5] += _n;
+  for ( int i = 0; i < NCHANNELS; ++i )
+    samples[i] += _n;
+
   return *this;
 }
 
 inline samples_t &
 samples_t::operator -=(int _n)
 {
-  samples[0] -= _n;
-  samples[1] -= _n;
-  samples[2] -= _n;
-  samples[3] -= _n;
-  samples[4] -= _n;
-  samples[5] -= _n;
+  for ( int i = 0; i < NCHANNELS; ++i )
+    samples[i] -= _n;
+
   return *this;
 }
 
 inline samples_t &
 samples_t::operator +=(size_t _n)
 {
-  samples[0] += _n;
-  samples[1] += _n;
-  samples[2] += _n;
-  samples[3] += _n;
-  samples[4] += _n;
-  samples[5] += _n;
+  for ( int i = 0; i < NCHANNELS; ++i )
+    samples[i] += _n;
+
   return *this;
 }
 
 inline samples_t &
 samples_t::operator -=(size_t _n)
 {
-  samples[0] -= _n;
-  samples[1] -= _n;
-  samples[2] -= _n;
-  samples[3] -= _n;
-  samples[4] -= _n;
-  samples[5] -= _n;
+  for ( int i = 0; i < NCHANNELS; ++i )
+    samples[i] -= _n;
+
   return *this;
 }
 
 inline samples_t &
 samples_t::zero(void)
 {
-  samples[0] = 0;
-  samples[1] = 0;
-  samples[2] = 0;
-  samples[3] = 0;
-  samples[4] = 0;
-  samples[5] = 0;
+  for ( int i = 0; i < NCHANNELS; ++i )
+    samples[i] = 0;
+
   return *this;
 }
 

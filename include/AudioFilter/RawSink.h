@@ -16,49 +16,48 @@ public:
   RawSink()
   {}
 
-  RawSink(const char *_filename)
-    : f(_filename, "wb")
+  RawSink(const char *filename)
+    : _f(filename, "wb")
   {}
 
-  RawSink(FILE *_f)
-    : f(_f)
+  RawSink(FILE *f)
+    : _f(f)
   {}
 
-  bool open(const char *_filename)
+  bool open(const char *filename)
   {
-    return f.open(_filename, "wb");
+    return _f.open(filename, "wb");
   }
 
-  bool open(FILE *_f)
+  bool open(FILE *f)
   {
-    return f.open(_f);
+    return _f.open(f);
   }
 
   void close(void)
   {
-    f.close();
-    spk = spk_unknown;
+    _f.close();
+    _spk = Speakers::UNKNOWN;
   }
 
   bool isOpen(void) const
   {
-    return f.isOpen();
+    return _f.isOpen();
   }
 
   /////////////////////////////////////////////////////////
   // Sink interface
 
-  virtual bool queryInput(Speakers _spk) const
+  virtual bool queryInput(Speakers spk) const
   {
-    // cannot write linear format
-    return f.isOpen() && _spk.format != FORMAT_LINEAR;
+    return _f.isOpen() && spk.isRawData(); // cannot write linear format
   }
 
-  virtual bool setInput(Speakers _spk)
+  virtual bool setInput(Speakers spk)
   {
-    if ( queryInput(_spk) )
+    if ( queryInput(spk) )
     {
-      spk = _spk;
+      _spk = spk;
       return true;
     }
 
@@ -67,16 +66,16 @@ public:
 
   virtual Speakers getInput(void) const
   {
-    return spk;
+    return _spk;
   }
 
   // data write
-  virtual bool process(const Chunk *_chunk)
+  virtual bool process(const Chunk *chunk)
   {
-    if ( ! _chunk->isDummy() )
+    if ( ! chunk->isDummy() )
     {
-      if ( spk == _chunk->spk || setInput(_chunk->spk) )
-        return f.write(_chunk->rawdata, _chunk->size) == _chunk->size;
+      if ( _spk == chunk->spk || setInput(chunk->spk) )
+        return _f.write(chunk->rawdata, chunk->size) == chunk->size;
 
       return false;
     }
@@ -85,9 +84,8 @@ public:
   }
 
 protected:
-  Speakers spk;
-  AutoFile f;
-
+  Speakers _spk;
+  AutoFile _f;
 };
 
 }; // namespace AudioFilter

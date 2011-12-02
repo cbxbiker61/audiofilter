@@ -167,8 +167,8 @@ bool FileParser::stats(unsigned max_measurements, vtime_t precision)
 
     ++stat_size;
     avg_frame_interval += stream.getFrameInterval();
-    avg_bitrate += float(stream.getFrameInterval() * 8 * hinfo.spk.sample_rate)
-                        / hinfo.nsamples;
+    avg_bitrate += float(stream.getFrameInterval() * 8 * hinfo.getSpeakers().getSampleRate())
+                        / hinfo.getSampleCount();
 
     ///////////////////////////////////////////////////////
     // Finish scanning if we have enough accuracy

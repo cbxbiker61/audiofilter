@@ -53,7 +53,7 @@ namespace AudioFilter {
 
 WavSource::WavSource()
 {
-  spk = spk_unknown;
+  spk = Speakers::UNKNOWN;
   block_size = 0;
   data_start = 0;
   data_size  = 0;
@@ -62,7 +62,7 @@ WavSource::WavSource()
 
 WavSource::WavSource(const char *_filename, size_t _block_size)
 {
-  spk = spk_unknown;
+  spk = Speakers::UNKNOWN;
   block_size = 0;
   data_start = 0;
   data_size  = 0;
@@ -198,7 +198,7 @@ bool WavSource::openRiff(void)
 
 void WavSource::close(void)
 {
-  spk = spk_unknown;
+  spk = Speakers::UNKNOWN;
   block_size = 0;
   data_start = 0;
   data_size  = 0;

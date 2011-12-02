@@ -4,9 +4,9 @@
 
 namespace {
 
-inline bool is14Bit(int bs_type)
+inline bool is14Bit(int bsType)
 {
-  return (bs_type == BITSTREAM_14LE) || (bs_type == BITSTREAM_14BE);
+  return (bsType == BITSTREAM_14LE) || (bsType == BITSTREAM_14BE);
 }
 
 const size_t MAX_SPDIF_FRAME_SIZE(16384*4);
@@ -57,7 +57,8 @@ public:
 
 namespace AudioFilter {
 
-SpdifWrapper::SpdifWrapper(HeaderParser *ph, int hdFreqMult, int dtsMode, int dtsConv)
+SpdifWrapper::SpdifWrapper(HeaderParser *ph
+          , int dtsMode, int dtsConv)
   : _dtsMode(dtsMode)
   , _dtsConv(dtsConv)
   , _buf(new uint8_t[MAX_SPDIF_FRAME_SIZE])
@@ -66,10 +67,10 @@ SpdifWrapper::SpdifWrapper(HeaderParser *ph, int hdFreqMult, int dtsMode, int dt
   , _spdifFrameParser(false)
   , _hi()
   , _spk()
-  , _spdif()
+  , _spdifFrame()
   , _useHeader(true)
   , _spdifBsType(0)
-  , _hdFreqMult(hdFreqMult)
+  , _channelMap()
   , _clearOffsetLast(0)
 {
   ::memset(_buf, 0, MAX_SPDIF_FRAME_SIZE);
@@ -107,35 +108,24 @@ void SpdifWrapper::reset(void)
 {
   _hi.drop();
   _spdifFrameParser.reset();
-  _spk = spk_unknown;
-  _spdif.ptr = 0;
-  _spdif.size = 0;
+  _spk = Speakers::UNKNOWN;
+  _spdifFrame.ptr = 0;
+  _spdifFrame.size = 0;
 }
 
 bool SpdifWrapper::parseFrame(uint8_t *frame, size_t size)
 {
-  _spdif.ptr = 0;
-  _spdif.size = 0;
-
-  /////////////////////////////////////////////////////////
-  // Determine frame's characteristics
-
   if ( ! _pHeaderParser->parseHeader(frame, &_hi) ) // unknown format
     return false;
 
-  if ( ! _hi.spdif_type )
+  _spdifFrame.ptr = 0;
+  _spdifFrame.size = 0;
+
+  if ( ! _hi.isSpdifable() ) // passthrough non-spdifable format
   {
-    // passthrough non-spdifable format
-    _spk = _hi.spk;
-    _spdif.ptr = frame;
-    _spdif.size = size;
-    return true;
-  }
-  else if ( _hi.spdif_type == 20 ) // Dts Hd, currently throw-away
-  {
-    _spk = _hi.spk;
-    _spdif.ptr = frame;
-    _spdif.size = 0;
+    _spk = _hi.getSpeakers();
+    _spdifFrame.ptr = frame;
+    _spdifFrame.size = size;
     return true;
   }
 
@@ -145,7 +135,7 @@ bool SpdifWrapper::parseFrame(uint8_t *frame, size_t size)
   uint8_t *rawFrame(frame);
   size_t rawSize(size);
 
-  if ( _hi.spk.format == FORMAT_SPDIF )
+  if ( _hi.getSpeakers().isSpdif() ) // if it's already spdif'd
   {
     if ( ! _spdifFrameParser.parseFrame(frame, size) )
       return false;
@@ -155,17 +145,38 @@ bool SpdifWrapper::parseFrame(uint8_t *frame, size_t size)
     rawSize = _spdifFrameParser.getRawSize();
   }
 
-  size_t spdifFrameSize(_hi.nsamples * 4);
-  const bool isHd(_hi.isHd());
-
+  size_t spdifFrameSize(_hi.getSampleCount() * 4);
   size_t maxSpdifFrameSize(2048);
+  const bool isDtsHd(_hi.isDtsHd());
   size_t spdifHeaderSize(sizeof(SpdifHeaderSync0));
+  size_t hdFrameMultiplier(1);
+  bool hasDtsHdSupport( isValidChannelMap(8, 192000) \
+                  || isValidChannelMap(2, 192000) \
+                  || isValidChannelMap(8, 48000) );
 
-  if ( isHd )
+  if ( isDtsHd )
   {
-    spdifFrameSize *= _hdFreqMult;
-    maxSpdifFrameSize *= _hdFreqMult;
-    spdifHeaderSize = (sizeof(SpdifHeaderSync) + sizeof(DtsHdHeader));
+    if ( hasDtsHdSupport )
+    {
+      if ( isValidChannelMap(8, 192000) )
+      {
+        hdFrameMultiplier = 16;
+        spdifHeaderSize = (sizeof(SpdifHeaderSync) + sizeof(DtsHdHeader));
+      }
+      else if ( isValidChannelMap(2, 192000) || isValidChannelMap(8, 48000) )
+      {
+        hdFrameMultiplier = 4;
+        spdifHeaderSize = (sizeof(SpdifHeaderSync) + sizeof(DtsHdHeader));
+      }
+
+      spdifFrameSize *= hdFrameMultiplier;
+      maxSpdifFrameSize *= hdFrameMultiplier;
+    }
+    else
+    {
+      // ignore the dts hd data when we don't have enough bandwidth
+      rawSize -= _hi.getDtsHdSize();
+    }
   }
 
   const size_t spdifDataSize(spdifFrameSize - spdifHeaderSize);
@@ -179,19 +190,21 @@ bool SpdifWrapper::parseFrame(uint8_t *frame, size_t size)
   {
     // impossible to send over spdif
     // passthrough non-spdifable data
-    _spk = _hi.spk;
-    _spdif.ptr = rawFrame;
-    _spdif.size = rawSize;
+    _spk = _hi.getSpeakers();
+    _spdifFrame.ptr = rawFrame;
+    _spdifFrame.size = rawSize;
     return true;
   }
 
   /////////////////////////////////////////////////////////
   // Determine output bitstream type and header usage
 
-  if ( _hi.spk.format == FORMAT_DTS )
+  if ( _hi.getSpeakers().isDts() )
   {
-    const bool frameGrows((_dtsConv == DTS_CONV_14BIT) && ! is14Bit(_hi.bs_type));
-    const bool frameShrinks((_dtsConv == DTS_CONV_16BIT) && is14Bit(_hi.bs_type));
+    const bool frameGrows((_dtsConv == DTS_CONV_14BIT)
+                    && ! is14Bit(_hi.getBsType()));
+    const bool frameShrinks((_dtsConv == DTS_CONV_16BIT)
+                    && is14Bit(_hi.getBsType()));
 
     switch ( _dtsMode )
     {
@@ -203,14 +216,14 @@ bool SpdifWrapper::parseFrame(uint8_t *frame, size_t size)
         else if ( frameShrinks && (rawSize * 7 / 8 <= spdifDataSize) )
           _spdifBsType = BITSTREAM_16LE;
         else if ( rawSize <= spdifDataSize )
-          _spdifBsType = is14Bit(_hi.bs_type) ? BITSTREAM_14LE : BITSTREAM_16LE;
+          _spdifBsType = ( is14Bit(_hi.getBsType()) ) ? BITSTREAM_14LE : BITSTREAM_16LE;
         else
         {
           // impossible to wrap
           // passthrough non-spdifable data
-          _spk = _hi.spk;
-          _spdif.ptr = rawFrame;
-          _spdif.size = rawSize;
+          _spk = _hi.getSpeakers();
+          _spdifFrame.ptr = rawFrame;
+          _spdifFrame.size = rawSize;
           return true;
         }
       break;
@@ -223,14 +236,14 @@ bool SpdifWrapper::parseFrame(uint8_t *frame, size_t size)
         else if ( frameShrinks && (rawSize * 7 / 8 <= spdifFrameSize) )
           _spdifBsType = BITSTREAM_16LE;
         else if ( rawSize <= spdifFrameSize )
-          _spdifBsType = is14Bit(_hi.bs_type) ? BITSTREAM_14LE : BITSTREAM_16LE;
+          _spdifBsType = ( is14Bit(_hi.getBsType()) ) ? BITSTREAM_14LE : BITSTREAM_16LE;
         else
         {
           // impossible to send over spdif
           // passthrough non-spdifable data
-          _spk = _hi.spk;
-          _spdif.ptr = rawFrame;
-          _spdif.size = rawSize;
+          _spk = _hi.getSpeakers();
+          _spdifFrame.ptr = rawFrame;
+          _spdifFrame.size = rawSize;
           return true;
         }
         break;
@@ -261,20 +274,20 @@ bool SpdifWrapper::parseFrame(uint8_t *frame, size_t size)
         else if ( rawSize <= spdifDataSize )
         {
           _useHeader = true;
-          _spdifBsType = is14Bit(_hi.bs_type) ? BITSTREAM_14LE : BITSTREAM_16LE;
+          _spdifBsType = ( is14Bit(_hi.getBsType()) ) ? BITSTREAM_14LE : BITSTREAM_16LE;
         }
         else if ( rawSize <= spdifFrameSize )
         {
           _useHeader = false;
-          _spdifBsType = is14Bit(_hi.bs_type) ? BITSTREAM_14LE : BITSTREAM_16LE;
+          _spdifBsType = ( is14Bit(_hi.getBsType()) ) ? BITSTREAM_14LE : BITSTREAM_16LE;
         }
         else
         {
           // impossible to send over spdif
           // passthrough non-spdifable data
-          _spk = _hi.spk;
-          _spdif.ptr = rawFrame;
-          _spdif.size = rawSize;
+          _spk = _hi.getSpeakers();
+          _spdifFrame.ptr = rawFrame;
+          _spdifFrame.size = rawSize;
           return true;
         }
         break;
@@ -293,9 +306,9 @@ bool SpdifWrapper::parseFrame(uint8_t *frame, size_t size)
 
   if ( _useHeader )
   {
-    if ( isHd )
+    if ( isDtsHd && hasDtsHdSupport )
     {
-      payloadSize = bs_convert(rawFrame, rawSize, _hi.bs_type
+      payloadSize = bs_convert(rawFrame, rawSize, _hi.getBsType()
                       , _buf + spdifHeaderSize, _spdifBsType);
       assert(payloadSize <= spdifDataSize);
 
@@ -313,13 +326,17 @@ bool SpdifWrapper::parseFrame(uint8_t *frame, size_t size)
 
       SpdifHeaderSync *hs((SpdifHeaderSync *)_buf);
       DtsHdHeader *hd((DtsHdHeader *)(_buf+sizeof(SpdifHeaderSync)));
-      hs->set( (_hdFreqMult == 16) ? 0x0411 : ((_hdFreqMult == 8) ? 0x0311 : 0x0211)
+      hs->set( (hdFrameMultiplier == 16)
+                      ? 0x0411
+                      : ((hdFrameMultiplier == 8)
+                              ? 0x0311
+                              : 0x0211)
                       , rawSize + sizeof(DtsHdHeader));
       hd->setSize(rawSize);
     }
     else
     {
-      payloadSize = bs_convert(rawFrame, rawSize, _hi.bs_type
+      payloadSize = bs_convert(rawFrame, rawSize, _hi.getBsType()
                       , _buf + spdifHeaderSize, _spdifBsType);
       assert(payloadSize <= spdifDataSize);
 
@@ -336,12 +353,13 @@ bool SpdifWrapper::parseFrame(uint8_t *frame, size_t size)
         _buf[sizeof(SpdifHeaderSync0) + 3] = 0xe8;
 
       SpdifHeaderSync0 *hs((SpdifHeaderSync0 *)_buf);
-      hs->set(_hi.spdif_type, (uint16_t)payloadSize * 8);
+      hs->set(_hi.getSpdifType(), (uint16_t)payloadSize * 8);
     }
   }
   else
   {
-    payloadSize = bs_convert(rawFrame, rawSize, _hi.bs_type, _buf, _spdifBsType);
+    payloadSize = bs_convert(rawFrame, rawSize, _hi.getBsType()
+                    , _buf, _spdifBsType);
     assert(payloadSize <= spdifFrameSize);
 
       const size_t clearOffset(payloadSize);
@@ -361,12 +379,54 @@ bool SpdifWrapper::parseFrame(uint8_t *frame, size_t size)
     return false;
 
   // prepare output
-  _spk = _hi.spk;
-  _spk.format = FORMAT_SPDIF;
-  _spdif.ptr = _buf;
-  _spdif.size = spdifFrameSize;
+  _spk = _hi.getSpeakers();
+
+  if ( isDtsHd && hasDtsHdSupport )
+  {
+    if ( isValidChannelMap(8, 192000) )
+    {
+      _spk.setMask(MODE_7_1);
+      _spk.setSampleRate(192000);
+    }
+    else if ( isValidChannelMap(2, 192000) )
+    {
+      _spk.setMask(MODE_STEREO);
+      _spk.setSampleRate(192000);
+    }
+    else if ( isValidChannelMap(8, 48000) )
+    {
+      _spk.setMask(MODE_7_1);
+      _spk.setSampleRate(48000);
+    }
+    else if ( isValidChannelMap(2, 48000) )
+    {
+      _spk.setMask(MODE_STEREO);
+      _spk.setSampleRate(48000);
+    }
+  }
+  else
+  {
+    _spk.setMask(MODE_STEREO);
+  }
+
+  _spk.setFormat(FORMAT_SPDIF);
+  _spdifFrame.ptr = _buf;
+  _spdifFrame.size = spdifFrameSize;
 
   return true;
+}
+
+bool SpdifWrapper::isValidChannelMap ( int channels, int sampleRate )
+{
+  std::vector<ChannelMap>::const_iterator i;
+
+  for ( i = _channelMap.begin(); i != _channelMap.end(); i++ )
+  {
+    if ( (*i)._channels == channels && (*i)._sampleRate == sampleRate )
+      return true;
+  }
+
+  return false;
 }
 
 std::string SpdifWrapper::getStreamInfo(void) const
@@ -401,10 +461,10 @@ std::string SpdifWrapper::getStreamInfo(void) const
       "Frame size: %zu\n",
       _spk.getFormatText(),
       _spk.getModeText(),
-      _spk.sample_rate,
+      _spk.getSampleRate(),
       _useHeader ? "wrapped": "padded",
       bitstream,
-      _spdif.size );
+      _spdifFrame.size );
   }
 
   return info;

@@ -200,10 +200,9 @@ int main(int argc, char **argv)
   // Process data
 
   bool show_info(false);
-
+  bool isSpdif(false);
   int frames(0);
   int bs_target(bs_type);
-  bool isSpdif(false);
   inFile.seek(0);
   sb.reset();
 
@@ -235,7 +234,7 @@ int main(int argc, char **argv)
 
           // find conversion function
           HeaderInfo hi = sb.getHeaderInfo();
-          isSpdif = hi.spk.format == FORMAT_SPDIF;
+          isSpdif = hi.getSpeakers().isSpdif();
 
           if ( isSpdif )
           {
@@ -247,12 +246,12 @@ int main(int argc, char **argv)
 
           bs_target = bs_type;
 
-          if ( is14Bit(bs_target) && hi.spk.format != FORMAT_DTS )
+          if ( is14Bit(bs_target) && ! hi.getSpeakers().isDts() )
             bs_target = BITSTREAM_8;
 
-          std::cout << "Conversion from " << getBsName(hi.bs_type)
+          std::cout << "Conversion from " << getBsName(hi.getBsType())
                   << " to " << getBsName(bs_target) << std::endl;
-          conv = bs_conversion(hi.bs_type, bs_target);
+          conv = bs_conversion(hi.getBsType(), bs_target);
 
           if ( ! conv )
             std::cout << "Cannot convert this stream!" << std::endl;
@@ -311,9 +310,7 @@ void printInfo(StreamBuffer &sb, int bs_type)
   SpdifFrameParser spdifFrameParser(false);
   HeaderInfo hi = sb.getHeaderInfo();
 
-  bool isSpdif(hi.spk.format == FORMAT_SPDIF);
-
-  if ( isSpdif )
+  if ( hi.getSpeakers().isSpdif() )
   {
     if ( spdifFrameParser.parseFrame(sb.getFrame(), sb.getFrameSize()) )
       hi = spdifFrameParser.getHeaderInfo();
@@ -321,11 +318,13 @@ void printInfo(StreamBuffer &sb, int bs_type)
       std::cout << "\nERROR!!!\nCannot parse SPDIF frame" << std::endl;
   }
 
-  if ( is14Bit(bs_type) && hi.spk.format != FORMAT_DTS )
+  if ( is14Bit(bs_type) && ! hi.getSpeakers().isDts() )
   {
-    std::cout << "\nWARNING!!!\n"
-            << hi.spk.getFormatText() << " does not support 14bit stream format!\n"
-"It will be converted to byte stream.\n" << std::endl;
+    std::cout << "\nWARNING!!!" << std::endl
+            << hi.getSpeakers().getFormatText()
+            << " does not support 14bit stream format!" << std::endl
+            << "It will be converted to byte stream." << std::endl
+            << std::endl;
   }
 }
 

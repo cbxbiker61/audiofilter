@@ -101,7 +101,7 @@ bool spk2wfx(Speakers spk, WAVEFORMATEX *wfx, bool use_extensible)
     // SPDIF format
     wfx->wFormatTag = WAVE_FORMAT_DOLBY_AC3_SPDIF;
     wfx->nChannels = 2;
-    wfx->nSamplesPerSec = spk.sample_rate;
+    wfx->nSamplesPerSec = spk.getSampleRate();
     wfx->wBitsPerSample = 16;
     wfx->nBlockAlign = 4;
     wfx->nAvgBytesPerSec = wfx->nSamplesPerSec * wfx->nBlockAlign;
@@ -124,21 +124,21 @@ bool spk2wfx(Speakers spk, WAVEFORMATEX *wfx, bool use_extensible)
   WAVEFORMATEXTENSIBLE *ext = (WAVEFORMATEXTENSIBLE *)wfx;
 
   // always use WAVEFORMATEX for mono/stereo 16bit format
-  use_extensible &= (spk.nch() > 2) || (spk.format != FORMAT_PCM16);
+  use_extensible &= (spk.getChannelCount() > 2) || (spk.getFormat() != FORMAT_PCM16);
 
   if ( use_extensible )
     memset(wfx, 0, sizeof(WAVEFORMATEXTENSIBLE));
   else
     memset(wfx, 0, sizeof(WAVEFORMATEX));
 
-  int nchannels = spk.nch();
+  int nchannels = spk.getChannelCount();
 
-  switch ( spk.format )
+  switch ( spk.getFormat() )
   {
     case FORMAT_AC3:
     case FORMAT_DTS:
     case FORMAT_MPA:
-      switch (spk.format)
+      switch (spk.getFormat())
       {
         case FORMAT_AC3: wfx->wFormatTag = WAVE_FORMAT_AVI_AC3; break;
         case FORMAT_DTS: wfx->wFormatTag = WAVE_FORMAT_AVI_DTS; break;
@@ -147,7 +147,7 @@ bool spk2wfx(Speakers spk, WAVEFORMATEX *wfx, bool use_extensible)
       }
 
       wfx->nChannels = nchannels;
-      wfx->nSamplesPerSec = spk.sample_rate;
+      wfx->nSamplesPerSec = spk.getSampleRate();
       wfx->wBitsPerSample = 0;
       wfx->nBlockAlign = 1;
       wfx->nAvgBytesPerSec = 0;
@@ -157,7 +157,7 @@ bool spk2wfx(Speakers spk, WAVEFORMATEX *wfx, bool use_extensible)
     case FORMAT_PCM16:
       wfx->wFormatTag = WAVE_FORMAT_PCM;
       wfx->nChannels = nchannels;
-      wfx->nSamplesPerSec = spk.sample_rate;
+      wfx->nSamplesPerSec = spk.getSampleRate();
       wfx->wBitsPerSample = 16;
       wfx->nBlockAlign = wfx->wBitsPerSample / 8 * wfx->nChannels;
       wfx->nAvgBytesPerSec = wfx->nSamplesPerSec * wfx->nBlockAlign;
@@ -170,14 +170,14 @@ bool spk2wfx(Speakers spk, WAVEFORMATEX *wfx, bool use_extensible)
 
         ext->SubFormat = GUID_SUBTYPE_PCM;
         ext->Samples.wValidBitsPerSample = 16;
-        ext->dwChannelMask = ds_channels_tbl[spk.mask];
+        ext->dwChannelMask = ds_channels_tbl[spk.getMask()];
       }
       break;
 
     case FORMAT_PCM24:
       wfx->wFormatTag = WAVE_FORMAT_PCM;
       wfx->nChannels = nchannels;
-      wfx->nSamplesPerSec = spk.sample_rate;
+      wfx->nSamplesPerSec = spk.getSampleRate();
       wfx->wBitsPerSample = 24;
       wfx->nBlockAlign = wfx->wBitsPerSample / 8 * wfx->nChannels;
       wfx->nAvgBytesPerSec = wfx->nSamplesPerSec * wfx->nBlockAlign;
@@ -190,14 +190,14 @@ bool spk2wfx(Speakers spk, WAVEFORMATEX *wfx, bool use_extensible)
 
         ext->SubFormat = GUID_SUBTYPE_PCM;
         ext->Samples.wValidBitsPerSample = 24;
-        ext->dwChannelMask = ds_channels_tbl[spk.mask];
+        ext->dwChannelMask = ds_channels_tbl[spk.getMask()];
       }
       break;
 
     case FORMAT_PCM32:
       wfx->wFormatTag = WAVE_FORMAT_PCM;
       wfx->nChannels = nchannels;
-      wfx->nSamplesPerSec = spk.sample_rate;
+      wfx->nSamplesPerSec = spk.getSampleRate();
       wfx->wBitsPerSample = 32;
       wfx->nBlockAlign = wfx->wBitsPerSample / 8 * wfx->nChannels;
       wfx->nAvgBytesPerSec = wfx->nSamplesPerSec * wfx->nBlockAlign;
@@ -210,14 +210,14 @@ bool spk2wfx(Speakers spk, WAVEFORMATEX *wfx, bool use_extensible)
 
         ext->SubFormat = GUID_SUBTYPE_PCM;
         ext->Samples.wValidBitsPerSample = 32;
-        ext->dwChannelMask = ds_channels_tbl[spk.mask];
+        ext->dwChannelMask = ds_channels_tbl[spk.getMask()];
       }
       break;
 
     case FORMAT_PCMFLOAT:
       wfx->wFormatTag = WAVE_FORMAT_IEEE_FLOAT;
       wfx->nChannels = nchannels;
-      wfx->nSamplesPerSec = spk.sample_rate;
+      wfx->nSamplesPerSec = spk.getSampleRate();
       wfx->wBitsPerSample = 32;
       wfx->nBlockAlign = wfx->wBitsPerSample / 8 * wfx->nChannels;
       wfx->nAvgBytesPerSec = wfx->nSamplesPerSec * wfx->nBlockAlign;
@@ -230,14 +230,14 @@ bool spk2wfx(Speakers spk, WAVEFORMATEX *wfx, bool use_extensible)
 
         ext->SubFormat = GUID_SUBTYPE_IEEE_FLOAT;
         ext->Samples.wValidBitsPerSample = 32;
-        ext->dwChannelMask = ds_channels_tbl[spk.mask];
+        ext->dwChannelMask = ds_channels_tbl[spk.getMask()];
       }
       break;
 
     case FORMAT_PCMDOUBLE:
       wfx->wFormatTag = WAVE_FORMAT_IEEE_FLOAT;
       wfx->nChannels = nchannels;
-      wfx->nSamplesPerSec = spk.sample_rate;
+      wfx->nSamplesPerSec = spk.getSampleRate();
       wfx->wBitsPerSample = 64;
       wfx->nBlockAlign = wfx->wBitsPerSample / 8 * wfx->nChannels;
       wfx->nAvgBytesPerSec = wfx->nSamplesPerSec * wfx->nBlockAlign;
@@ -250,7 +250,7 @@ bool spk2wfx(Speakers spk, WAVEFORMATEX *wfx, bool use_extensible)
 
         ext->SubFormat = GUID_SUBTYPE_IEEE_FLOAT;
         ext->Samples.wValidBitsPerSample = 64;
-        ext->dwChannelMask = ds_channels_tbl[spk.mask];
+        ext->dwChannelMask = ds_channels_tbl[spk.getMask()];
       }
       break;
 

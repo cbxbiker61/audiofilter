@@ -135,15 +135,15 @@ int main(int argc, char **argv)
   Speakers spk2 = f2.getOutput();
   Speakers spk_diff = spk1;
 
-  if ( spk1.format == FORMAT_PCM16 )
+  if ( spk1.getFormat() == FORMAT_PCM16 )
     spk_diff = spk2;
-  else if ( spk2.format == FORMAT_PCM16 )
+  else if ( spk2.getFormat() == FORMAT_PCM16 )
     spk_diff = spk1;
-  else if ( spk1.format == FORMAT_PCM24 )
+  else if ( spk1.getFormat() == FORMAT_PCM24 )
     spk_diff = spk2;
-  else if ( spk2.format == FORMAT_PCM24 )
+  else if ( spk2.getFormat() == FORMAT_PCM24 )
     spk_diff = spk1;
-  else if ( spk1.format == FORMAT_PCM32 )
+  else if ( spk1.getFormat() == FORMAT_PCM32 )
     spk_diff = spk2;
 
   /////////////////////////////////////////////////////////////////////////////
@@ -154,15 +154,15 @@ int main(int argc, char **argv)
   Converter conv_diff(block_size);
   conv1.setFormat(FORMAT_LINEAR);
   conv2.setFormat(FORMAT_LINEAR);
-  conv_diff.setFormat(spk_diff.format);
+  conv_diff.setFormat(spk_diff.getFormat());
 
-  if ( spk1.nch() != spk2.nch() )
+  if ( spk1.getChannelCount() != spk2.getChannelCount() )
   {
     std::cout << "Error: different number of channels" << std::endl;
     return -1;
   }
 
-  if ( spk1.sample_rate != spk2.sample_rate )
+  if ( spk1.getSampleRate() != spk2.getSampleRate() )
   {
     std::cout << "Error: different sample rates" << std::endl;
     return -1;
@@ -197,9 +197,7 @@ int main(int argc, char **argv)
   double rms(0.0);
 
   Speakers spk;
-  size_t len;
-  int ch;
-  size_t s;
+  //size_t len;
 
   vtime_t t = getLocalTime() + 0.1;
 
@@ -217,7 +215,7 @@ int main(int argc, char **argv)
       }
 
       if ( chunk1.isDummy() )
-	continue;
+        continue;
     }
 
     if ( ! chunk2.size )
@@ -238,18 +236,18 @@ int main(int argc, char **argv)
     ///////////////////////////////////////////////////////
     // Compare data
 
-    len = MIN(chunk2.size, chunk1.size);
-    double norm1 = 1.0 / spk1.level;
-    double norm2 = 1.0 / spk2.level;
+    size_t len(MIN(chunk2.size, chunk1.size));
+    double norm1(1.0 / spk1.getLevel());
+    double norm2(1.0 / spk2.getLevel());
 
-    for ( ch = 0; ch < spk1.nch(); ++ch )
+    for ( int ch = 0; ch < spk1.getChannelCount(); ++ch )
     {
-      for ( s = 0; s < len; ++s )
+      for ( size_t s = 0; s < len; ++s )
       {
         sample_t d = chunk1.samples[ch][s] * norm1 - chunk2.samples[ch][s] * norm2;
 
         if ( fabs(d) > diff )
-	  diff = fabs(d);
+          diff = fabs(d);
 
         mean += fabs(d);
         rms += d * d;
@@ -262,14 +260,14 @@ int main(int argc, char **argv)
     if ( f_diff.isOpen() )
     {
       Speakers spk_diff_linear = spk_diff;
-      spk_diff_linear.format = FORMAT_LINEAR;
+      spk_diff_linear.setLinear();
 
-      double norm1 = spk_diff.level / spk1.level;
-      double norm2 = spk_diff.level / spk2.level;
+      double norm1(spk_diff.getLevel() / spk1.getLevel());
+      double norm2(spk_diff.getLevel() / spk2.getLevel());
 
-      for (ch = 0; ch < spk1.nch(); ++ch )
+      for ( int ch = 0; ch < spk1.getChannelCount(); ++ch )
       {
-        for ( s = 0; s < len; ++s )
+        for ( size_t s = 0; s < len; ++s )
           chunk1.samples[ch][s] = chunk1.samples[ch][s] * norm1 - chunk2.samples[ch][s] * norm2;
       }
 

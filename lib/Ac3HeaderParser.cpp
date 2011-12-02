@@ -80,7 +80,7 @@ bool Ac3HeaderParser::parseHeader(const uint8_t *hdr, HeaderInfo *hinfo)
     halfrate = halfrate_tbl[hdr[5] >> 3];
     bitrate = bitrate_tbl[frmsizecod >> 1];
 
-    hinfo->bs_type = BITSTREAM_8;
+    hinfo->setBsType(BITSTREAM_8);
   }
   else if ( (hdr[1] == 0x0b) && (hdr[0] == 0x77) ) // 16 bit little endian stream sync
   {
@@ -107,7 +107,7 @@ bool Ac3HeaderParser::parseHeader(const uint8_t *hdr, HeaderInfo *hinfo)
     halfrate   = halfrate_tbl[hdr[4] >> 3];
     bitrate    = bitrate_tbl[frmsizecod >> 1];
 
-    hinfo->bs_type = BITSTREAM_16LE;
+    hinfo->setBsType(BITSTREAM_16LE);
   }
   else
     return false;
@@ -115,27 +115,27 @@ bool Ac3HeaderParser::parseHeader(const uint8_t *hdr, HeaderInfo *hinfo)
   switch ( fscod )
   {
     case 0:
-      hinfo->frame_size = 4 * bitrate;
+      hinfo->setFrameSize(4 * bitrate);
       sample_rate = 48000 >> halfrate;
       break;
 
     case 1:
-      hinfo->frame_size = 2 * (320 * bitrate / 147 + (frmsizecod & 1));
+      hinfo->setFrameSize(2 * (320 * bitrate / 147 + (frmsizecod & 1)));
       sample_rate = 44100 >> halfrate;
       break;
 
     case 2:
-      hinfo->frame_size = 6 * bitrate;
+      hinfo->setFrameSize(6 * bitrate);
       sample_rate = 32000 >> halfrate;
 
     default:
       return false;
   }
 
-  hinfo->spk = Speakers(FORMAT_AC3, acmod2mask_tbl[acmod], sample_rate, 1.0, dolby);
-  hinfo->scan_size = 0; // do not scan
-  hinfo->nsamples = 1536;
-  hinfo->spdif_type = 1; // SPDIF Pc burst-info (data type = AC3)
+  hinfo->setSpeakers(Speakers(FORMAT_AC3, acmod2mask_tbl[acmod], sample_rate, 1.0, dolby));
+  hinfo->setScanSize(0); // do not scan
+  hinfo->setSampleCount(1536);
+  hinfo->setSpdifType(1); // SPDIF Pc burst-info (data type = AC3)
   return true;
 }
 

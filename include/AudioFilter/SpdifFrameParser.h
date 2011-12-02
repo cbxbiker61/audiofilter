@@ -36,9 +36,9 @@ public:
   virtual void reset(void);
   virtual bool parseFrame(uint8_t *frame, size_t size);
 
-  virtual Speakers getSpk(void) const
+  virtual const Speakers &getSpeakers(void) const
   {
-    return _hi.spk;
+    return _hi.getSpeakers();
   }
 
   virtual samples_t getSamples(void) const
@@ -48,9 +48,9 @@ public:
     return samples;
   }
 
-  virtual size_t getNSamples(void) const
+  virtual size_t getSampleCount(void) const
   {
-    return _hi.nsamples;
+    return _hi.getSampleCount();
   }
 
   virtual uint8_t *getRawData(void) const

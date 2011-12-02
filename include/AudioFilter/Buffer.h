@@ -110,12 +110,12 @@ public:
     f_buf.zero();
   }
 
-  inline unsigned nch(void) const
+  inline unsigned getChannelCount(void) const
   {
     return f_nch;
   }
 
-  inline size_t getNSamples(void) const
+  inline size_t getSampleCount(void) const
   {
     return f_nsamples;
   }
@@ -149,7 +149,7 @@ protected:
 
 };
 
-}; // namespace AudioFilter
+} // namespace AudioFilter
 
 #endif
 

@@ -10,6 +10,7 @@
  * Can re-wrap SPDIF stream with conversion between SPDIF stream types.
  */
 
+#include <vector>
 #include "Parsers.h"
 #include "SpdifFrameParser.h"
 
@@ -28,10 +29,14 @@ class SpdifWrapper : public FrameParser
 public:
 
   SpdifWrapper(HeaderParser *hp = 0
-                  , int hdFreqMult = 4
                   , int dtsMode = DTS_MODE_AUTO
                   , int dtsConv = DTS_CONV_NONE);
   ~SpdifWrapper();
+
+  void addChannelMap( int channels, int sampleRate )
+  {
+      _channelMap.push_back(ChannelMap(channels, sampleRate));
+  }
 
   HeaderInfo getHeaderInfo(void) const
   {
@@ -43,7 +48,7 @@ public:
   virtual void reset(void);
   virtual bool parseFrame(uint8_t *frame, size_t size);
 
-  virtual Speakers getSpk(void) const
+  virtual const Speakers &getSpeakers(void) const
   {
     return _spk;
   }
@@ -55,25 +60,38 @@ public:
     return samples;
   }
 
-  virtual size_t getNSamples(void) const
+  virtual size_t getSampleCount(void) const
   {
-    return _hi.nsamples;
+    return _hi.getSampleCount();
   }
 
   virtual uint8_t *getRawData(void) const
   {
-    return _spdif.ptr;
+    return _spdifFrame.ptr;
   }
 
   virtual size_t getRawSize(void) const
   {
-    return _spdif.size;
+    return _spdifFrame.size;
   }
 
   virtual std::string getStreamInfo(void) const;
   virtual std::string getFrameInfo(void) const;
 
-protected:
+private:
+
+  class ChannelMap
+  {
+  public:
+    ChannelMap(int channels, int sampleRate)
+      : _channels(channels), _sampleRate(sampleRate)
+    {}
+  private:
+    int _channels;
+    int _sampleRate;
+  friend class SpdifWrapper;
+  };
+
   int _dtsMode;
   int _dtsConv;
 
@@ -92,12 +110,13 @@ protected:
     SpdifFrame() : ptr(0), size(0) {}
     uint8_t *ptr;
     size_t size;
-  } _spdif;
+  } _spdifFrame;
 
   bool _useHeader; // use SPDIF header
   int _spdifBsType; // SPDIF bitstream type
 private:
-  int _hdFreqMult;
+  bool isValidChannelMap( int channels, int sampleRate );
+  std::vector<ChannelMap> _channelMap;
   size_t _clearOffsetLast;
 };
 
