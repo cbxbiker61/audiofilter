@@ -115,8 +115,15 @@ void SpdifWrapper::reset(void)
 
 bool SpdifWrapper::parseFrame(uint8_t *frame, size_t size)
 {
+  _spk = Speakers(FORMAT_SPDIF, MODE_STEREO, 48000, 1.0, NO_RELATION); // set a plausible default
+
   if ( ! _pHeaderParser->parseHeader(frame, &_hi) ) // unknown format
+  {
     return false;
+    // don't reset _spdifFrame.ptr and _spdifFrame.size
+    // we may want to resend the last valid frame
+    // in the event a bogus frame is encountered
+  }
 
   _spdifFrame.ptr = 0;
   _spdifFrame.size = 0;
