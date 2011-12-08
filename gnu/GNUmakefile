@@ -12,8 +12,8 @@ BINDIR = /usr/bin
 LibName := AudioFilter
 LIBS := -L. -l$(LibName)
 acLib := lib$(LibName).a
-acLibObjs := Ac3HeaderParser.o Ac3Parser.o AgcFilter.o AutoFile.o BitStream.o \
-	Converter.o ConvertFunc.o Convolver.o ConvolverMch.o \
+acLibObjs := Ac3HeaderParser.o Ac3Parser.o AgcFilter.o AutoFile.o BitReader.o \
+	BitStream.o Converter.o ConvertFunc.o Convolver.o ConvolverMch.o \
 	DtsHdHeaderParser.o DtsHeaderParser.o DtsFrameParser.o FileParser.o \
 	FilterGraph.o Fir.o Generator.o LinearFilter.o \
 	MpaHeaderParser.o MpaFrameParser.o MpaSynth.o MpegDemuxer.o \

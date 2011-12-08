@@ -1,162 +1,323 @@
 // remove these when done debuggin
-#include <cstdlib>
-#include <iostream>
-#include <cstdio>
+//#include <cstdlib>
+//#include <iostream>
+//#include <cstdio>
+//#include <cstring>
+//#ifdef __unix__
+//#ifndef _XOPEN_SOURCE
+//#define _XOPEN_SOURCE
+//#endif
+//#include <unistd.h>
+//#else
+//#endif
 
 #include <AudioFilter/Parsers.h>
+#include <AudioFilter/BitReader.h>
 
 namespace {
-
-const int dts_sample_rates[] =
-{
-  0, 8000, 16000, 32000, 0, 0, 11025, 22050, 44100, 0, 0,
-  12000, 24000, 48000, 96000, 192000
-};
-
-const int amode2mask_tbl[] =
-{
-  MODE_MONO,   MODE_STEREO,  MODE_STEREO,  MODE_STEREO,  MODE_STEREO,
-  MODE_3_0,    MODE_2_1,     MODE_3_1,     MODE_2_2,     MODE_3_2
-};
-
-const int amode2rel_tbl[] =
-{
-  NO_RELATION,   NO_RELATION,  NO_RELATION,  RELATION_SUMDIFF, RELATION_DOLBY,
-  NO_RELATION,   NO_RELATION,  NO_RELATION,  NO_RELATION,      NO_RELATION,
-};
 
 }; // anonymous namespace
 
 namespace AudioFilter {
 
-bool DtsHeaderParser::parseHeader(const uint8_t *hdr, HeaderInfo *hinfo)
+const uint32_t dca_bit_rates[36] =
 {
-  int bs_type;
-  int nblks;
-  int amode;
-  int sfreq;
-  int lff;
-  int fSiz(0);
-  int hdLen(0);
-  uint16_t *hdr16((uint16_t *)hdr);
+    32000, 56000, 64000, 96000, 112000, 128000,
+    192000, 224000, 256000, 320000, 384000,
+    448000, 512000, 576000, 640000, 768000,
+    896000, 1024000, 1152000, 1280000, 1344000,
+    1408000, 1411200, 1472000, 1536000, 1920000,
+    2048000, 3072000, 3840000, 1, 2, 3
+};
 
-  //uint32_t syncword_dts = AV_RB32(pkt->data);
-
-  // 16 bits big endian bitstream
-  if ( hdr[0] == 0x7f
-        && hdr[1] == 0xfe
-        && hdr[2] == 0x80
-        && hdr[3] == 0x01 )
+class DtsFrameInfo
+{
+public:
+  DtsFrameInfo()
+    : _isNormalFrame(false)
+    , _shortSamples(0)
+    , _isCrcPresent(false)
+    , _sampleBlocks(0)
+    , _frameSize(0)
+    , _channelLayout(0)
+    , _sampleIndex(0)
+    , _bitRate(0)
+    , _downMix(false)
+    , _dynamicRange(false)
+    , _timeStamp(false)
+    , _auxiliaryData(false)
+    , _hdcd(false)
+    , _externalDescription(0)
+    , _externalCoding(false)
+    , _aspf(false)
+    , _lfe(0)
+    , _predictorHistory(false)
+    , _crc(0)
+    , _multirateInter(false)
+    , _version(0)
+    , _copyHistory(0)
+    , _sourcePcmResolution(0)
+    , _frontSum(false)
+    , _surroundSum(false)
+    , _dialogNormalization(0)
+    , _is14Bit(false)
   {
-    bs_type = BITSTREAM_16BE;
-    nblks = (be2uint16(hdr16[2]) >> 2)  & 0x7f;
-    fSiz = ((((int16_t)hdr[5] << 14) & 0x3fff)
-            | ((int16_t)hdr[6] << 4)
-            | ((int16_t)hdr[7] >> 4)) + 1;
-    amode = ((be2uint16(hdr16[3]) << 2)  & 0x3c)
-            | ((be2uint16(hdr16[4]) >> 14) & 0x03);
-    sfreq = (be2uint16(hdr16[4]) >> 10) & 0x0f;
-    lff   = (be2uint16(hdr16[5]) >> 9)  & 0x03;
-    ++nblks;
+  }
 
-    const uint8_t *hdHdr(hdr+fSiz);
-
-    if ( hdHdr[0] == 0x64
-        && hdHdr[1] == 0x58
-        && hdHdr[2] == 0x20
-        && hdHdr[3] == 0x25 )
+  bool init ( BitReader br )
+  {
+    br.reset();
+    // 16 bit formats
+    if ( br.getByte() == 0x7f
+            && br.getByte() == 0xfe
+            && br.getByte() == 0x80
+            && br.getByte() == 0x01 )
     {
-      hdLen = ((hdHdr[6] & 0xf) << 11) + (hdHdr[7] << 3) + ((hdHdr[8] >> 5) & 7) + 1;
+        _is14Bit = false;
     }
-
-  }
-  // 16 bits little endian bitstream
-  else if (hdr[0] == 0xfe
-        && hdr[1] == 0x7f
-        && hdr[2] == 0x01
-        && hdr[3] == 0x80)
-  {
-    bs_type = BITSTREAM_16LE;
-    nblks = (le2uint16(hdr16[2]) >> 2)  & 0x7f;
-    amode = ((le2uint16(hdr16[3]) << 2)  & 0x3c)
-            | ((le2uint16(hdr16[4]) >> 14) & 0x03);
-    sfreq = (le2uint16(hdr16[4]) >> 10) & 0x0f;
-    lff   = (le2uint16(hdr16[5]) >> 9)  & 0x03;
-    ++nblks;
-  }
-  // 14 bits big endian bitstream
-  else if (hdr[0] == 0x1f
-        && hdr[1] == 0xff
-        && hdr[2] == 0xe8
-        && hdr[3] == 0x00
-        && hdr[4] == 0x07
-        && ((hdr[5] & 0xf0) == 0xf0))
-  {
-    bs_type = BITSTREAM_14BE;
-    nblks = ((be2uint16(hdr16[2]) << 4)  & 0x70)
+    else
+    {
+      // 14 bit formats
+      br.reset();
+      if (br.getByte() == 0x1f
+        && br.getByte() == 0xff
+        && br.getByte() == 0xe8
+        && br.getByte() == 0x00
+        && br.getByte() == 0x07
+        && br.getByte(4) == 0xf)
+      {
+        _is14Bit = true;
+/*
+ * The original code was this, not sure I can parse the 14bit the same as the
+ * 16 bit, but I can look at that later if there are problems
+    sampleBlocks = ((be2uint16(hdr16[2]) << 4)  & 0x70)
             | ((be2uint16(hdr16[3]) >> 10) & 0x0f);
+    ++sampleBlocks;
     amode = (be2uint16(hdr16[4]) >> 4)  & 0x3f;
     sfreq = (be2uint16(hdr16[4]) >> 0)  & 0x0f;
-    lff   = (be2uint16(hdr16[6]) >> 11) & 0x03;
-    ++nblks;
+    lfe   = (be2uint16(hdr16[6]) >> 11) & 0x03;
+*/
+      }
+      else
+      {
+        return false; // invalid frame data
+      }
+    }
+
+    _isNormalFrame = br.getBool(); // 1
+    _shortSamples = br.getInt(5); // 6
+    _isCrcPresent = br.getBool(); // 7
+    _sampleBlocks = br.getInt(7) + 1; // 14
+    _frameSize = br.getInt(14) + 1; // 28
+    _channelLayout = br.getInt(6);
+    _sampleIndex = br.getInt(4);
+    _bitRate = br.getInt(5);
+    _downMix = br.getBool();
+    _dynamicRange = br.getBool();
+    _timeStamp = br.getBool();
+    _auxiliaryData = br.getBool();
+    _hdcd = br.getBool();
+    _externalDescription = br.getInt(3);
+    _externalCoding = br.getBool();
+    _aspf = br.getBool();
+    _lfe = br.getInt(2);
+    _predictorHistory = br.getBool();
+
+    if ( _isCrcPresent )
+      _crc = br.getInt(16);
+
+    _multirateInter = br.getBool();
+    _version = br.getInt(4);
+    _copyHistory = br.getInt(2);
+    _sourcePcmResolution = br.getInt(3);
+    _frontSum = br.getBool();
+    _surroundSum = br.getBool();
+    _dialogNormalization = br.getInt(4);
+    return true;
   }
-  // 14 bits little endian bitstream
-  else if (hdr[0] == 0xff
-        && hdr[1] == 0x1f
-        && hdr[2] == 0x00
-        && hdr[3] == 0xe8
-        && ((hdr[4] & 0xf0) == 0xf0)
-        && hdr[5] == 0x07)
+
+  int getSampleCount(void) const
   {
-    bs_type = BITSTREAM_14LE;
-    nblks = ((le2uint16(hdr16[2]) << 4)  & 0x70)
-            | ((le2uint16(hdr16[3]) >> 10) & 0x0f);
-    amode = (le2uint16(hdr16[4]) >> 4)  & 0x3f;
-    sfreq = (le2uint16(hdr16[4]) >> 0)  & 0x0f;
-    lff   = (le2uint16(hdr16[6]) >> 11) & 0x03;
-    ++nblks;
+      return _sampleBlocks * 32;
   }
-  // no sync
+
+  int getSampleBlocks(void) const
+  {
+      return _sampleBlocks;
+  }
+
+  int getFrameSize(void) const
+  {
+      return _frameSize;
+  }
+
+  int getChannelLayout(void) const
+  {
+    return _channelLayout;
+  }
+
+  int getSampleIndex(void) const
+  {
+    return _sampleIndex;
+  }
+
+  int getSampleRate(void) const
+  {
+    const int rates[] = { 0, 8000, 16000, 32000, 0, 0 , 11025, 22050
+            , 44100, 0, 0, 12000, 24000, 48000, 96000, 192000 };
+
+    return rates[_sampleIndex];
+  }
+
+  int getLfe(void) const
+  {
+      return _lfe;
+  }
+
+  bool getIs14Bit(void) const
+  {
+      return _is14Bit;
+  }
+
+private:
+  bool _isNormalFrame;
+  int _shortSamples;
+  bool _isCrcPresent;
+  int _sampleBlocks;
+  int _frameSize;
+  int _channelLayout;
+  int _sampleIndex;
+  int _bitRate;
+  bool _downMix;
+  bool _dynamicRange;
+  bool _timeStamp;
+  bool _auxiliaryData;
+  bool _hdcd;
+  int _externalDescription;
+  bool _externalCoding;
+  bool _aspf;
+  int _lfe;
+  bool _predictorHistory;
+  int _crc;
+  bool _multirateInter;
+  int _version;
+  int _copyHistory;
+  int _sourcePcmResolution;
+  bool _frontSum;
+  bool _surroundSum;
+  int _dialogNormalization;
+  bool _is14Bit;
+};
+
+class DtsHdFrameInfo
+{
+public:
+  DtsHdFrameInfo()
+    : _ssIndex(0)
+    , _headerSize(0)
+    , _hdSize(0)
+  {
+  }
+
+  DtsHdFrameInfo(BitReader br)
+    : _ssIndex(0)
+    , _headerSize(0)
+    , _hdSize(0)
+  {
+    init(br);
+  }
+
+  bool init ( BitReader br )
+  {
+    br.reset();
+    if ( br.getByte() != 0x64
+        || br.getByte() != 0x58
+        || br.getByte() != 0x20
+        || br.getByte() != 0x25 )
+    {
+        return false;
+    }
+
+    // * dca.c dca_exss_parse_header
+
+    br.skip(8); // user data
+    _ssIndex = br.getInt(2);
+    bool blownUp(br.getBool());
+    _headerSize = br.getInt(blownUp ? 12 : 8);
+    //hdLen = ((hdHdr[6] & 0xf) << 11) + (hdHdr[7] << 3) + ((hdHdr[8] >> 5) & 7) + 1;
+    _hdSize = br.getInt(blownUp ? 20: 16) + 1;
+
+    return true;
+  }
+
+  int getHdSize(void) const
+  {
+      return _hdSize;
+  }
+
+private:
+  int _ssIndex;
+  int _headerSize;
+  int _hdSize;
+};
+
+bool DtsHeaderParser::parseHeader(const uint8_t *hdr, HeaderInfo *hinfo)
+{
+  DtsFrameInfo dtsFi;
+  int bsType;
+  bool isBigEndian(true);
+
+  if ( dtsFi.init(BitReader(hdr, 16, true)) )
+      bsType = dtsFi.getIs14Bit() ? BITSTREAM_14BE : BITSTREAM_16BE;
+  else if ( dtsFi.init(BitReader(hdr, 16, false)) )
+  {
+      bsType = dtsFi.getIs14Bit() ? BITSTREAM_14LE : BITSTREAM_16LE;
+      isBigEndian = false;
+  }
   else
     return false;
 
   /////////////////////////////////////////////////////////
   // Constraints
 
-  if ( nblks < 6 ) // constraint
+  if ( dtsFi.getSampleBlocks() < 6 ) // constraint
     return false;
-  else if ( amode > 0xc ) // we don't work with more than 6 channels
+  else if ( dtsFi.getChannelLayout() > 0xc ) // we don't work with more than 6 channels
     return false;
-  else if ( dts_sample_rates[sfreq] == 0 ) // constraint
+  else if ( dtsFi.getSampleRate() == 0 ) // constraint
     return false;
-  else if ( lff == 3 ) // constraint
+  else if ( dtsFi.getLfe() == 3 ) // constraint
     return false;
+
+  DtsHdFrameInfo dtsHdFrameInfo(BitReader(hdr+dtsFi.getFrameSize(), 16, isBigEndian));
 
   if ( hinfo )
   {
-    int sample_rate(dts_sample_rates[sfreq]);
-    int mask(amode2mask_tbl[amode]);
-    const int relation(amode2rel_tbl[amode]);
+    const int layout2MaskTable[] = {
+      MODE_MONO,   MODE_STEREO,  MODE_STEREO,  MODE_STEREO,  MODE_STEREO,
+      MODE_3_0,    MODE_2_1,     MODE_3_1,     MODE_2_2,     MODE_3_2
+    };
 
-    if ( lff )
+    const int layout2RelationTable[] =
+    {
+      NO_RELATION,   NO_RELATION,  NO_RELATION,  RELATION_SUMDIFF, RELATION_DOLBY,
+      NO_RELATION,   NO_RELATION,  NO_RELATION,  NO_RELATION,      NO_RELATION,
+    };
+
+    int mask(layout2MaskTable[dtsFi.getChannelLayout()]);
+    const int relation(layout2RelationTable[dtsFi.getChannelLayout()]);
+
+    if ( dtsFi.getLfe() )
     {
       mask |= CH_MASK_LFE;
     }
 
-#if 0
-    if ( hdLen )
-    {
-      sample_rate *= 4;
-      mask = MODE_7_1;
-    }
-#endif
-
-    hinfo->setSpeakers(Speakers(FORMAT_DTS, mask, sample_rate, 1.0, relation));
-    hinfo->setFrameSize(fSiz + hdLen);
-    hinfo->setDtsHdSize(hdLen);
+    hinfo->setSpeakers(Speakers(FORMAT_DTS, mask, dtsFi.getSampleRate(), 1.0, relation));
+    hinfo->setFrameSize(dtsFi.getFrameSize() + dtsHdFrameInfo.getHdSize());
+    hinfo->setDtsHdSize(dtsHdFrameInfo.getHdSize());
     hinfo->setScanSize(16384); // always scan up to maximum DTS frame size
-    hinfo->setSampleCount(nblks * 32);
-    hinfo->setBsType(bs_type);
+    hinfo->setSampleCount(dtsFi.getSampleCount());
+    hinfo->setBsType(bsType);
 
     switch ( hinfo->getSampleCount() )
     {
